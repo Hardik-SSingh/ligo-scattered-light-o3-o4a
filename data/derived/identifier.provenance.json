@@ -1,0 +1,26 @@
+{
+  "stage": "04_train_identifier",
+  "written_utc": "2026-08-19T11:20:17.854179+00:00",
+  "python": "3.11.15",
+  "platform": "Windows-10-10.0.26200-SP0",
+  "config_path": "C:\\Users\\hardik singh\\LIGO_Glitch_Classification\\config\\analysis.yaml",
+  "seed": 20260804,
+  "model": "gradient_boosting",
+  "n_features": 20,
+  "cv_auc": 0.927533433886375,
+  "cv_efficiency": 0.512,
+  "threshold": 0.9877216113092423,
+  "control_classes": [
+    "Blip",
+    "Koi_Fish",
+    "Low_Frequency_Burst",
+    "Tomte",
+    "Extremely_Loud",
+    "Repeating_Blips",
+    "Light_Modulation",
+    "Violin_Mode",
+    "Whistle",
+    "Power_Line",
+    "No_Glitch"
+  ]
+}

@@ -1,0 +1,83 @@
+\section{Conclusions}
+\label{sec:conclusions}
+
+This work characterises scattered-light transients in LIGO O3 and O4a using
+public data only, and asks how much of the physics survives that restriction.
+
+\begin{enumerate}
+
+\item \textbf{The morphology carries the mechanism.} Because the scattering
+frequency follows $|v|$ rather than $v$, the arch repetition period measures
+the driving motion directly, $\fdrive = 1/2\Tarch$, and the harmonic spacing
+at the apex measures the peak surface velocity. Both are strain-only
+measurements. Validated against injections, the arch period is recovered to
+better than \SI{1}{\percent} and the harmonic spacing to within
+\SI{7}{\percent}.
+
+\item \textbf{Two public-data facts constrain what is possible, and neither is
+documented elsewhere.} No Gravity Spy classification catalogue has been
+released for O4a, and the O4a auxiliary release contains no seismometer,
+accelerometer or suspension witness. Together they mean the O4a analysis must
+be strain-only, and that the auxiliary correlation is necessarily an O3
+result. Both were established by direct verification before any code was
+written; the second is asserted in the test suite so that a future release
+would be detected.
+
+\item \textbf{The O3 auxiliary release supports more than expected.} Alongside
+the complete ground-seismometer band-limited RMS family across the earthquake,
+microseismic and anthropogenic bands, it contains
+\code{L1:SUS-OM3\_M1\_DAMP\_L\_IN1\_DQ} at \SI{256}{\hertz} --- a genuine
+optic-motion witness, and the only full-rate one in either release. This makes
+a per-trigger test of $f_n = 2n|v|/\lambda$ possible from public data, which
+was not obviously the case at the outset.
+
+\item \textbf{The O3 auxiliary work is what licenses the O4a interpretation.}
+Establishing in O3 that the trigger rate tracks ground motion, and that the
+predictor explains individual arch trains, is what allows an O4a arch period
+--- measured with no auxiliary data at all --- to be read as a statement about
+the instrument's environment rather than as a description of a picture.
+
+\item \textbf{Validation against known signals changed the analysis, twice.}
+Capping the $Q$ range corrected a factor-of-twenty error in the measured arch
+period of fast scattering, and raising the ridge threshold from $Z = 5.5$ to
+$Z = 20$ removed a noise floor that was saturating the frequency-extent
+features. Neither error was visible in the outputs; both were visible against
+injections. The residual \SI{15}{\percent} high bias in maximum arch frequency
+is reported rather than tuned away, and is used only where it cancels.
+
+\end{enumerate}
+
+The pipeline is public, resumable, and validated end to end. Its main
+extension --- full O4a coverage --- is a matter of compute rather than method,
+and the arrival of an O4a trigger catalogue would remove the largest remaining
+systematic without changing anything else.
+
+\subsection*{Acknowledgements}
+
+This research has made use of data obtained from the Gravitational Wave Open
+Science Center (\url{https://gwosc.org}), a service of the LIGO Laboratory, the
+LIGO Scientific Collaboration, the Virgo Collaboration and KAGRA. LIGO
+Laboratory and Advanced LIGO are funded by the United States National Science
+Foundation, with contributions from the Science and Technology Facilities
+Council of the United Kingdom, the Max-Planck-Society, and the State of
+Niedersachsen/Germany.
+
+This work uses the Gravity Spy machine-learning classification data release
+\citep{GravitySpyData2021} and the GWOSC O3 and O4 auxiliary channel releases
+\citep{GWOSCO3Aux,GWOSCO4Aux}. The Gravity Spy project is supported by the
+United States National Science Foundation and relies on the contributions of
+its citizen-science volunteers.
+
+The analysis uses \code{gwpy} \citep{Macleod2021GWpy}, \code{numpy}
+\citep{Harris2020NumPy}, \code{scipy} \citep{Virtanen2020SciPy},
+\code{scikit-learn} \citep{Pedregosa2011} and \code{matplotlib}
+\citep{Hunter2007}.
+
+\subsection*{Data and code availability}
+
+All input data are public: strain and auxiliary channels from GWOSC, and the
+Gravity Spy classifications from Zenodo record 5649212. The analysis code,
+configuration, verbatim channel lists and decision log are at
+\url{https://github.com/hardiksingh/LIGO_Glitch_Classification}. Every derived
+product is written with a provenance sidecar recording the configuration, the
+random seed and the software versions used to produce it.

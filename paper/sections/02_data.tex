@@ -1,0 +1,193 @@
+\section{Data}
+\label{sec:data}
+
+Every dataset used here is public. Nothing in the analysis requires LIGO
+credentials. All availability statements below were verified against the live
+services on 2026-08-04 by the environment-check stage of the pipeline
+(\cref{app:reproducibility}).
+
+\subsection{Observing-run epochs}
+
+\Cref{tab:epochs} lists the epochs analysed and their GPS boundaries, taken
+from the GWOSC data-release pages.
+
+\begin{table}[htbp]
+\centering
+\caption{Observing-run epochs. Strain from both detectors is public for all
+three. O4b and O4c are excluded: their releases were partial at the time of
+writing and they add nothing to the O3-versus-O4a comparison.}
+\label{tab:epochs}
+\small
+\begin{tabular}{llrrl}
+\toprule
+Epoch & Run & GPS start & GPS end & UTC span \\
+\midrule
+\Otza & O3 & 1238166018 & 1253977218 & 2019-04-01 to 2019-10-01 \\
+\Otzb & O3 & 1256655618 & 1269363618 & 2019-11-01 to 2020-03-27 \\
+\Ofa  & O4 & 1368975618 & 1389456018 & 2023-05-24 to 2024-01-16 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Strain is taken from the \SI{4}{\kilo\hertz} release, which is sufficient for
+an analysis confined below \SI{256}{\hertz}. Analysis-ready segments come from
+the GWOSC segment API using the \code{<IFO>\_DATA} flag; this is the correct
+denominator for a glitch rate, since a rate computed against calendar time
+would confound glitchiness with duty cycle.
+
+\subsection{Gravity Spy classifications: O3 only}
+\label{sec:data:gravityspy}
+
+The labelled input is the Gravity Spy machine-learning classification release,
+Zenodo record 5649212 \citep{GravitySpyData2021,Glanzer2023}. It contains every
+Omicron \citep{Robinet2020} trigger with $\mathrm{SNR} > 7.5$ and peak
+frequency in \SIrange{10}{2048}{\hertz}, together with the trigger metadata, a
+$22$-element vector of class posteriors, and the arg-max label.
+
+Selection cuts, applied identically to the target and control classes so that
+both are drawn under the same conditions:
+
+\begin{itemize}
+  \item $\mathrm{SNR} \geq 7.5$ (the Gravity Spy trigger threshold);
+  \item peak frequency in \SIrange{10}{2048}{\hertz};
+  \item machine-learning confidence in the assigned class $\geq 0.90$;
+  \item event time inside the epoch boundaries of \cref{tab:epochs}.
+\end{itemize}
+
+The confidence cut is the one real choice here. It trades sample size for
+label purity, and at $0.90$ it removes the ambiguous tail without collapsing
+the sample. \Cref{sec:results:systematics} reports how the results move when
+it is varied.
+
+The control sample consists of the classes \emph{Blip}, \emph{Koi\_Fish},
+\emph{Low\_Frequency\_Burst}, \emph{Tomte}, \emph{Extremely\_Loud},
+\emph{Repeating\_Blips}, \emph{Light\_Modulation}, \emph{Violin\_Mode},
+\emph{Whistle}, \emph{Power\_Line} and \emph{No\_Glitch}. Its role is to define
+what the classifier of \cref{sec:methods:classifier} must reject.
+
+\paragraph{There is no O4a catalogue.} This is worth stating precisely because
+the analysis design turns on it. The Zenodo ML-classification release covers
+O1, O2, O3a and O3b. The volunteer-classification release extending to
+2024-07-20 is keyed by Zooniverse subject identifier and carries no GPS time,
+detector or trigger metadata, so it cannot serve as a trigger list. The O4a
+Gravity Spy model of \citet{Wu2025} is published without an accompanying
+catalogue. Consequently the O4a sample must be built from strain
+(\cref{sec:methods:search}).
+
+\subsection{Auxiliary channels}
+\label{sec:data:aux}
+
+Both GWOSC auxiliary releases are served over NDS2 at \code{nds.gwosc.org}.
+Only short windows around trigger times, and hour-scale trends, are needed
+here, so the several-terabyte bulk downloads are unnecessary.
+
+\subsubsection{O3}
+
+The O3 release \citep{GWOSCO3Aux} comprises $86$ full-rate channels
+($40$ \Hone, $46$ \Lone) and $402$ second-trend channels at \SI{1}{\hertz}
+($190$ \Hone, $212$ \Lone). \Cref{tab:auxchannels} lists those the analysis
+uses.
+
+\begin{table}[htbp]
+\centering
+\caption{Auxiliary channels used in the O3 analysis. Names ending
+\code{.rms} come from the second-trend frames. The suffix
+\code{BLRMS\_100M\_300M} denotes a band-limited RMS over
+\SIrange{0.1}{0.3}{\hertz}; ``M'' is millihertz.}
+\label{tab:auxchannels}
+\footnotesize
+\begin{tabular}{llp{6.4cm}}
+\toprule
+Channel & Rate & Role \\
+\midrule
+\code{L1:SUS-OM3\_M1\_DAMP\_L\_IN1\_DQ}
+  & \SI{256}{\hertz}
+  & OM3 top-stage \emph{length} damping error signal; the motion witness for
+    the per-trigger predictor \\[0.3em]
+\code{[HL]1:ISI-GND\_STS\_*\_BLRMS\_100M\_300M.rms}
+  & \SI{1}{\hertz}
+  & microseismic band at ETMX, ETMY, ITMX, ITMY, HAM5 in $x$, $y$, $z$;
+    driver of slow scattering \\[0.3em]
+\code{[HL]1:ISI-GND\_STS\_*\_BLRMS\_\{1\_3,3\_10\}.rms}
+  & \SI{1}{\hertz}
+  & \SIrange{1}{3}{\hertz} and \SIrange{3}{10}{\hertz} anthropogenic bands;
+    driver of fast scattering \\[0.3em]
+\code{[HL]1:ISI-GND\_STS\_ITMY\_Z\_BLRMS\_30M\_100M}
+  & \SI{16}{\hertz}
+  & \SIrange{0.03}{0.10}{\hertz} earthquake band \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Two asymmetries are worth recording. First, \Lone{} has a full-rate suspension
+witness in the public release and \Hone{} does not; the per-trigger predictor
+of \cref{sec:methods:predictor} is therefore an \Lone-only result, and the
+\Hone{} auxiliary analysis is confined to the rate level. Second, the
+auxiliary channels are published in raw digital counts with no calibration to
+metres, which is dealt with in \cref{sec:methods:predictor}.
+
+\subsubsection{O4a}
+\label{sec:data:aux:o4a}
+
+The O4a release \citep{GWOSCO4Aux} is $25$ channels: $14$ from \Hone{} and
+$11$ from \Lone. They are reproduced in full below, because the point being
+made depends on the list being complete rather than summarised.
+
+\begin{lstlisting}[language=,basicstyle=\ttfamily\scriptsize]
+H1: CAL-PCALX_RX_PD_OUT_DQ            L1: ASC-X_TR_A_NSUM_OUT_DQ
+    CAL-PCALY_RX_PD_OUT_DQ                CAL-PCALX_RX_PD_OUT_DQ
+    IMC-WFS_A_DC_PIT_OUT_DQ               CAL-PCALY_RX_PD_OUT_DQ
+    IMC-WFS_A_DC_YAW_OUT_DQ               IMC-WFS_B_I_PIT_OUT_DQ
+    LSC-POP_A_LF_OUT_DQ                   OAF-IMC_WFS_B_I_PIT_PREFILT_OUT_DQ
+    LSC-REFL_A_RIN_OUT_DQ                 PEM-EX_VMON_ETMX_ESDPOWER24_DQ
+    OAF-IMC_WFS_A_DC_PIT_PREFILT_OUT_DQ   PEM-EY_MAINSMON_EBAY_1_DQ
+    OAF-IMC_WFS_A_DC_YAW_PREFILT_OUT_DQ   SUS-ETMX_L1_CAL_LINE_OUT_DQ
+    OAF-REFL_A_RIN_PREFILT_OUT_DQ         SUS-ETMX_L2_CAL_LINE_OUT_DQ
+    PEM-EY_MAINSMON_EBAY_1_DQ             SUS-ETMX_L3_CAL_LINE_OUT_DQ
+    SUS-ETMX_L1_CAL_LINE_OUT_DQ           SUS-PI_PROC_COMPUTE_MODE5_RMSMON
+    SUS-ETMX_L2_CAL_LINE_OUT_DQ
+    SUS-ETMX_L3_CAL_LINE_OUT_DQ
+    SUS-PI_PROC_COMPUTE_MODE29_RMSMON
+\end{lstlisting}
+
+Every one is a photon-calibrator readout, an input mode-cleaner wavefront
+sensor, a length- or angular-sensing readout, a mains voltage monitor, an
+electrostatic-drive voltage monitor, a calibration-line drive, or a
+parametric-instability RMS monitor.
+
+There is no seismometer, no accelerometer, no microphone and no suspension
+witness. Neither the rate-level correlation against ground motion nor the
+per-trigger scattering predictor is computable for O4a from public data. This
+is a limitation of the release, not of the method, and it is the reason the
+O3-versus-O4a comparison in \cref{sec:results:comparison} is a morphology
+comparison rather than a mechanism comparison.
+
+The analysis pins this fact in code: a unit test asserts that the O4a channel
+list contains none of the tokens \code{ISI-GND}, \code{\_SEIS\_},
+\code{\_ACC\_}, \code{SUS-OM} or \code{WIT\_L}. Should GWOSC extend the
+release, that test fails, which is the intended signal to revisit the design.
+
+\subsection{Summary of what is and is not possible}
+
+\begin{table}[htbp]
+\centering
+\caption{Analysis coverage by run, given the public data.}
+\label{tab:coverage}
+\small
+\begin{tabular}{lll}
+\toprule
+Analysis & O3 & \Ofa \\
+\midrule
+Q-scan morphology            & yes, on Gravity Spy labels & yes, on classifier output \\
+Rate versus ground motion    & yes                        & \textbf{no} --- no seismic channels \\
+Per-trigger predictor        & \Lone{} only               & \textbf{no} --- no motion witness \\
+Slow/fast decomposition      & yes                        & yes, from arch period alone \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The slow/fast decomposition survives into O4a precisely because
+\cref{eq:fdrive} makes it a strain-only measurement. That is what makes the
+comparison possible at all, and it is the reason the auxiliary work in
+\cref{sec:results:aux} matters beyond O3: it is the calibration that justifies
+reading an O4a arch period as a statement about ground motion.

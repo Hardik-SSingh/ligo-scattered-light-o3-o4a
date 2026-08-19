@@ -1,0 +1,24 @@
+{
+  "stage": "01_fetch_gravityspy_catalog",
+  "written_utc": "2026-08-19T05:05:16.638509+00:00",
+  "python": "3.11.15",
+  "platform": "Windows-10-10.0.26200-SP0",
+  "config_path": "C:\\Users\\hardik singh\\LIGO_Glitch_Classification\\config\\analysis.yaml",
+  "seed": 20260804,
+  "zenodo_record": 5649212,
+  "n_triggers_after_cuts": 372801,
+  "n_target_triggers": 119162,
+  "n_target_events": 48824,
+  "cluster_window": 16.0,
+  "n_blocks": 400,
+  "n_target_sampled": 2256,
+  "n_control_sampled": 3335,
+  "cuts": {
+    "min_snr": 7.5,
+    "min_ml_confidence": 0.9,
+    "peak_frequency_range": [
+      10.0,
+      2048.0
+    ]
+  }
+}

@@ -1,0 +1,251 @@
+﻿\section{Results}
+\label{sec:results}
+
+\IfFileExists{numbers.tex}{}{%
+\begin{center}
+\fcolorbox{red!60!black}{red!5}{%
+\begin{minipage}{0.94\textwidth}
+\small\textbf{Status.} The pipeline has been validated end to end against
+simulated injections (\cref{sec:validation}) and every data path has been
+verified against the live services, but the production run over the full O3
+and O4a samples has not yet been executed. Quantities awaiting that run are
+shown as \result{like this}. They are placeholders, not measurements, and no
+value in this section should be quoted until this box disappears --- it does
+so automatically once \code{paper/numbers.tex} is written by stage~06 of the
+pipeline. The structure below, the statistical treatment, and the caveats are
+final.
+\end{minipage}}
+\end{center}
+\vspace{0.6em}}
+
+\subsection{The O3 sample}
+\label{sec:results:sample}
+
+\Cref{tab:sample} gives the size of the labelled sample after the cuts of
+\cref{sec:data:gravityspy}.
+
+\begin{table}[htbp]
+\centering
+\caption{Gravity Spy triggers surviving the selection cuts, by detector and
+epoch, and the scattered-light fraction. Produced by
+\code{results/tables/catalog\_summary.csv}.}
+\label{tab:sample}
+\small
+\generated{tab_sample}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\safefig[0.9\textwidth]{example_slow_1_L1}
+\caption{A representative slow-scattering trigger with the extracted arch
+envelope overlaid. The harmonic comb, the smooth rise and fall, and the
+regular repetition are the features the analysis quantifies.}
+\label{fig:exampleslow}
+\end{figure}
+
+\subsection{Morphology of the O3 population}
+\label{sec:results:morphology}
+
+The distribution of the arch repetition period is the central descriptive
+result, because \cref{eq:fdrive} converts it directly into a statement about
+the mechanical disturbance. \Cref{fig:archperiod} shows it with the implied
+driving frequency on the upper axis.
+
+\begin{figure}[htbp]
+\centering
+\safefig[0.9\textwidth]{arch_period_o3_vs_o4a}
+\caption{Arch repetition period. The upper axis gives the implied driving
+frequency $\fdrive = 1/2\Tarch$; the microseismic band
+(\SIrange{0.1}{0.3}{\hertz}) and the anthropogenic band
+(\SIrange{1}{6}{\hertz}) can be read off directly. The dotted line at
+\SI{1.5}{\second} is the slow/fast split.}
+\label{fig:archperiod}
+\end{figure}
+
+\Cref{tab:slowfast} decomposes each sample into the two populations. The
+columns headed ``in band'' are the check that the decomposition means what it
+claims: the slow population's implied driving frequencies should fall in the
+microseismic band and the fast population's in the anthropogenic band. If they
+do not, the split is a curve-fitting artefact rather than a physical
+separation.
+
+\begin{table}[htbp]
+\centering
+\caption{Slow/fast decomposition. ``In band'' is the fraction of each
+population whose implied driving frequency falls in the corresponding
+ground-motion band.}
+\label{tab:slowfast}
+\small
+\generated{tab_slowfast}
+\end{table}
+
+\subsection{Auxiliary correlation in O3}
+\label{sec:results:aux}
+
+\subsubsection{Rate versus ground motion}
+
+\Cref{tab:ratecorr} gives the Spearman correlation between the hourly
+scattered-light rate and the hourly band-limited RMS of each ground-motion
+channel, with six-hour moving-block bootstrap intervals.
+
+\begin{table}[htbp]
+\centering
+\caption{Rank correlation of the hourly scattered-light rate with
+ground-motion band-limited RMS, \Lone{} \Otzb. Channel names are abbreviated:
+each is prefixed \code{L1:ISI-GND\_STS\_} and suffixed \code{.rms}. Intervals
+are \SI{95}{\percent} moving-block bootstrap. Full table in
+\code{results/tables/aux\_rate\_correlations.csv}.}
+\label{tab:ratecorr}
+\footnotesize
+\generated{tab_ratecorr}
+\end{table}
+
+The strongest channel is \ResultStrongestChannel{}, at
+$\rho = \ResultStrongestRho$.
+
+Three supporting checks accompany it. The top-to-bottom quartile rate ratio
+for that channel is \ResultQuartileRatio{}, which states the effect in
+operational terms: how much more often scattering occurs in the noisiest
+quarter of hours than in the quietest. The lag scan peaks at
+\ResultLagPeak{}~hours, against the zero expected for an instantaneous
+mechanical response. The partial correlation of rate with the anthropogenic
+band, controlling for the microseism, tests whether the two bands carry
+independent information or merely track one another.
+
+\begin{figure}[htbp]
+\centering
+\begin{subfigure}{0.49\textwidth}
+  \safefig[\textwidth]{aux_correlation_L1_O3b}
+  \caption{Correlation summary.}
+\end{subfigure}\hfill
+\begin{subfigure}{0.49\textwidth}
+  \safefig[\textwidth]{rate_vs_groundmotion_L1_O3b}
+  \caption{Rate against ground motion.}
+\end{subfigure}
+\caption{Left: Spearman $\rho$ with moving-block bootstrap intervals for every
+ground-motion channel. Right: hourly rate against the band-limited RMS of the
+strongest channel, with binned medians and interquartile range.}
+\label{fig:auxcorr}
+\end{figure}
+
+\subsubsection{The per-trigger predictor}
+
+\Cref{tab:witness} gives the fitted witness calibration and the agreement
+measured on the disjoint validation set. The calibration is quoted with the
+range over which the training objective stays within \SI{1}{\percent} of its
+maximum: a narrow range indicates that the witness genuinely constrains the
+prediction, a wide one that it does not.
+
+\begin{table}[htbp]
+\centering
+\caption{Scattering predictor $f_n = 2n|v|/\lambda$ against the witness
+\code{L1:SUS-OM3\_M1\_DAMP\_L\_IN1\_DQ}. The calibration $\alpha$ is fitted on
+a training set and frozen before the validation measurement; the
+\SI{1}{\percent} range is the interval over which the training objective stays
+within one per cent of its maximum.}
+\label{tab:witness}
+\small
+\generated{tab_witness}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\safefig[0.9\textwidth]{predictor_overlay_1_L1}
+\caption{A real scattered-light trigger with the harmonic comb predicted from
+the auxiliary witness overlaid (dashed). The prediction uses only auxiliary
+data and the single fitted scale factor; the arches are from strain. Agreement
+between the two is the evidence that \cref{eq:fn} describes the mechanism.}
+\label{fig:predictor}
+\end{figure}
+
+\subsection{The O4a search}
+\label{sec:results:o4a}
+
+\Cref{tab:search} records the coverage of the livetime-limited search and the
+number of candidates classified as scattered light. The identifier's
+cross-validated performance on held-out O3 folds is
+$\mathrm{AUC} = \ResultClassifierAuc$ with an efficiency of
+\ResultClassifierEfficiency{} at a false-positive rate of $0.01$ against the
+control classes --- with the two caveats of \cref{sec:methods:classifier}
+attached.
+
+\begin{table}[htbp]
+\centering
+\caption{Blind-search coverage and yield. Rates are per hour of \emph{analysed}
+livetime; the coverage fraction is the analysed livetime as a fraction of the
+epoch's total.}
+\label{tab:search}
+\small
+\generated{tab_search}
+\end{table}
+
+\subsection{O3 versus O4a}
+\label{sec:results:comparison}
+
+\subsubsection{Rate}
+
+With the identical search applied to both runs, the ratio of the \Ofa{} rate
+to the O3 rate is \ResultRateRatioHOne{} at \Hone{} and \ResultRateRatioLOne{}
+at \Lone, with Poisson intervals as given in \cref{tab:search}.
+
+\subsubsection{Composition}
+
+The headline structural question is whether the slow, microseism-driven
+component was suppressed relative to the fast component. At \Hone{} the slow
+fraction went from \ResultSlowFractionOThreeHOne{} in O3 to
+\ResultSlowFractionOFouraHOne{} in \Ofa, a change of
+\ResultSlowShiftHOne{}; at \Lone{} it went from
+\ResultSlowFractionOThreeLOne{} to \ResultSlowFractionOFouraLOne{}, a change of
+\ResultSlowShiftLOne{} (\SI{95}{\percent} Newcombe intervals).
+
+\subsubsection{Morphology}
+
+\Cref{tab:featurecomp} lists the features whose distributions differ most
+between the runs, ranked by Cliff's $\delta$ rather than by $p$-value, for the
+reason given in \cref{sec:methods:stats}. The largest effect is in
+\ResultStrongestFeature{}, at $\delta = \ResultStrongestDelta$.
+
+\begin{table}[htbp]
+\centering
+\caption{Feature-by-feature comparison, ranked by effect size. $p$-values are
+Benjamini--Hochberg corrected across all twenty features. Full table in
+\code{results/tables/feature\_comparison.csv}.}
+\label{tab:featurecomp}
+\small
+\generated{tab_featurecomp}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\safefig[\textwidth]{feature_distributions_o3_vs_o4a}
+\caption{Morphology feature distributions for the O3 and O4a samples,
+normalised to unit area. Both samples are produced by the same search and the
+same classifier, so differences reflect the detector rather than the pipeline.}
+\label{fig:featuredist}
+\end{figure}
+
+\subsection{Systematics}
+\label{sec:results:systematics}
+
+Four checks bound the result.
+
+\paragraph{Label purity.} The Gravity Spy confidence cut is varied from
+$0.80$ to $0.95$. The O3 morphology medians move by \result{shift}, which
+bounds the effect of label contamination.
+
+\paragraph{Trigger generator.} The two comparison modes of
+\cref{sec:methods:search} --- like-for-like against the same search on O3, and
+against the Gravity Spy sample --- are reported side by side. Agreement
+indicates the result does not depend on how triggers were found; disagreement
+is quantified and attributed.
+
+\paragraph{Sampling.} The livetime-limited search covers only
+\ResultCoverageOFoura{} of O4a, so it is blind to structure on timescales longer than the
+sampling interval. The windows are drawn uniformly in livetime and stratified
+across the run, which makes the sample representative of the run as a whole
+but does not recover, for example, a two-week period of unusual behaviour.
+
+\paragraph{Extraction bias.} The \SI{15}{\percent} high bias in maximum arch
+frequency (\cref{sec:validation}) applies identically to both runs and so
+cancels in the comparison. It is not corrected for, and no absolute statement
+is made using that feature.

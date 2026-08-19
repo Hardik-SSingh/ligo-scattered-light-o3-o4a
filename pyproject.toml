@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gwglitch"
+version = "0.1.0"
+description = "Q-scan morphology and auxiliary-channel correlation study of scattered-light transients in LIGO O3 and O4a"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Hardik Sher Singh", email = "hsingh_be23@thapar.edu" }]
+keywords = ["gravitational waves", "LIGO", "detector characterisation", "glitches", "scattered light"]
+
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.11",
+    "matplotlib>=3.8",
+    "pandas>=2.0",
+    "astropy>=5.3",
+    "h5py>=3.9",
+    "requests>=2.31",
+    "tqdm>=4.66",
+    "scikit-learn>=1.3",
+    "pyyaml>=6.0",
+    "gwpy>=3.0",
+    "gwosc>=0.7",
+]
+
+[project.optional-dependencies]
+nds = ["nds2-client"]
+dev = ["pytest>=7.4", "seaborn>=0.13", "jupyterlab"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+filterwarnings = ["ignore::DeprecationWarning"]

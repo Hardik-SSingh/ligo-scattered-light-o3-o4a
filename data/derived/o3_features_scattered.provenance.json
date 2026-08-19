@@ -1,0 +1,27 @@
+{
+  "stage": "02_run_qscans",
+  "written_utc": "2026-08-19T11:03:19.228093+00:00",
+  "python": "3.11.15",
+  "platform": "Windows-10-10.0.26200-SP0",
+  "config_path": "C:\\Users\\hardik singh\\LIGO_Glitch_Classification\\config\\analysis.yaml",
+  "seed": 20260804,
+  "sample": "scattered",
+  "n_requested": 140,
+  "n_extracted": 126,
+  "energy_threshold": 20.0,
+  "min_island_tiles": 40,
+  "q_range": [
+    4.0,
+    16.0
+  ],
+  "frequency_range": [
+    8.0,
+    256.0
+  ],
+  "cache_stats": {
+    "hits": 0,
+    "misses": 100,
+    "downloads": 30,
+    "dead_blocks": 1
+  }
+}

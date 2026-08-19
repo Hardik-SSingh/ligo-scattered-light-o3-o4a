@@ -1,0 +1,124 @@
+\section{The morphology feature vector}
+\label{app:features}
+
+Each Q-scan is reduced to the twenty features below, computed by the function
+\code{extract\_features} in \code{gwglitch.morphology}. All are derived from the
+normalised-energy map of \cref{eq:normenergy}, so none depends on the absolute
+calibration and all are directly comparable between detectors and between
+runs. A feature that is undefined for a given map is returned as \code{NaN}
+and never as a substituted value.
+
+Notation: $Z(t,f)$ is the normalised energy, $Z_{\mathrm{thr}} = 20$ the ridge
+threshold, $f_{\mathrm{up}}(t)$ the highest supra-threshold frequency in time
+bin $t$ (the arch envelope), and $E(f) = \sum_t Z(t,f)$ the supra-threshold
+energy marginal.
+
+\begin{longtable}{%
+  >{\raggedright\arraybackslash}p{4.4cm}%
+  >{\raggedright\arraybackslash}p{1.8cm}%
+  >{\raggedright\arraybackslash}p{7.5cm}}
+\toprule
+Feature & Units & Definition and purpose \\
+\midrule
+\endfirsthead
+\toprule
+Feature & Units & Definition and purpose \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+
+\multicolumn{3}{l}{\textit{Extent}}\\[0.2em]
+\code{snr\_qscan} & --- &
+$\sqrt{2 Z_{\max}}$, the single-tile SNR of the loudest tile. \\[0.3em]
+
+\code{energy\_total} & --- &
+Sum of supra-threshold $Z$. Spans orders of magnitude, so it is compared on a
+log scale. \\[0.3em]
+
+\code{f\_peak} & \si{\hertz} &
+Frequency of the loudest tile. \\[0.3em]
+
+\code{f\_max} & \si{\hertz} &
+\SI{99}{\percent} quantile of $f_{\mathrm{up}}$. Biased high by
+$\sim\SI{15}{\percent}$ because a $Q$ tile of bandwidth $f/Q$ extends above the
+true apex (\cref{sec:validation}); used only where that bias cancels. \\[0.3em]
+
+\code{f\_min} & \si{\hertz} &
+\SI{1}{\percent} quantile of the lowest supra-threshold frequency. \\[0.3em]
+
+\code{bandwidth} & \si{\hertz} &
+\code{f\_max} $-$ \code{f\_min}. \\[0.3em]
+
+\code{duration} & \si{\second} &
+Total time spanned by supra-threshold bins. Separates the seconds-long
+scattering trains from the millisecond blips. \\[0.5em]
+
+\multicolumn{3}{l}{\textit{Arch structure}}\\[0.2em]
+\code{n\_arches} & --- &
+Number of prominent maxima of $f_{\mathrm{up}}$. \\[0.3em]
+
+\code{arch\_period} & \si{\second} &
+$\Tarch$, from the first prominent maximum of the autocorrelation of
+$f_{\mathrm{up}}$ (\cref{sec:methods:features}). The physically central
+feature: $\fdrive = 1/2\Tarch$. \\[0.3em]
+
+\code{arch\_period\_scatter} & --- &
+Normalised median absolute deviation of the peak-to-peak spacings. Small for a
+coherent train, large for irregular structure. \\[0.5em]
+
+\multicolumn{3}{l}{\textit{Harmonic structure}}\\[0.2em]
+\code{n\_harmonics} & --- &
+Number of peaks in a frequency slice through the arch apex. Measures how many
+bounce orders are above threshold, and hence how non-linear the coupling is.
+\\[0.3em]
+
+\code{harmonic\_spacing} & \si{\hertz} &
+Median spacing of those peaks, which equals the fundamental apex
+$2 v_{\mathrm{peak}}/\lambda$ and so measures the peak surface velocity
+directly. \\[0.5em]
+
+\multicolumn{3}{l}{\textit{Shape}}\\[0.2em]
+\code{ridge\_slope\_rms} & \si{\hertz\per\second} &
+RMS of $\mathrm{d}f_{\mathrm{up}}/\mathrm{d}t$. \\[0.3em]
+
+\code{ridge\_curvature\_rms} & \si{\hertz\per\second\squared} &
+RMS of the second derivative. Arches are smoothly curved; whistles and lines
+are not. \\[0.3em]
+
+\code{upward\_downward\_ratio} & --- &
+Ratio of rising to falling time bins along the envelope. Close to unity for a
+symmetric arch train; asymmetric for classes with a fast rise and slow decay.
+\\[0.5em]
+
+\multicolumn{3}{l}{\textit{Energy distribution}}\\[0.2em]
+\code{time\_symmetry} & --- &
+Skewness of the energy time-marginal. \\[0.3em]
+
+\code{frac\_energy\_below\_40hz} & --- &
+$\sum_{f<40} E / \sum E$. High for slow scattering. \\[0.3em]
+
+\code{frac\_energy\_above\_100hz} & --- &
+$\sum_{f>100} E / \sum E$. Low for scattering, high for blips; one of the
+strongest discriminators against the control classes. \\[0.3em]
+
+\code{spectral\_centroid} & \si{\hertz} &
+$\sum f E(f) / \sum E(f)$. \\[0.3em]
+
+\code{band\_concentration} & --- &
+$1 - W_{1/2}/W_{\mathrm{tot}}$, where $W_{1/2}$ is the width of the narrowest
+frequency band containing half the energy. Near $1$ for narrow-band structure,
+near $0$ for broadband. \\
+\end{longtable}
+
+\subsection*{Missingness is informative}
+
+Several features are genuinely undefined for some maps:
+\code{arch\_period} when fewer than two arches are present,
+\code{harmonic\_spacing} when fewer than two harmonic peaks are resolved, and
+\code{upward\_downward\_ratio} when the envelope never falls.
+That a feature could not be measured is itself
+diagnostic --- a blip has no arch period because it has no arches --- so the
+classifier imputes the median \emph{and} carries a missingness indicator,
+rather than dropping the row or silently filling a number that would be
+indistinguishable from a measurement.

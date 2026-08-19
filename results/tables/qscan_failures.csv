@@ -1,0 +1,29 @@
+event_time,detector,sample,error
+1238367294.625,H1,scattered,RuntimeError: _fetch_open_data failed after 4 attempts
+1238367332.5625,H1,scattered,BlockUnavailable: H1 block 302335 is known to be unavailable
+1238367398.125,H1,scattered,BlockUnavailable: H1 block 302335 is known to be unavailable
+1238367440.3125,H1,scattered,BlockUnavailable: H1 block 302335 is known to be unavailable
+1238367476.4375,H1,scattered,BlockUnavailable: H1 block 302335 is known to be unavailable
+1238367542.4375,H1,scattered,BlockUnavailable: H1 block 302335 is known to be unavailable
+1238367819.4375,H1,scattered,BlockUnavailable: H1 block 302335 is known to be unavailable
+1238367870.34375,H1,scattered,BlockUnavailable: H1 block 302335 is known to be unavailable
+1238368063.5625,H1,scattered,BlockUnavailable: H1 block 302335 is known to be unavailable
+1238368106.3125,H1,scattered,BlockUnavailable: H1 block 302335 is known to be unavailable
+1238368140.375,H1,scattered,BlockUnavailable: H1 block 302335 is known to be unavailable
+1238368228.6875,H1,scattered,BlockUnavailable: H1 block 302335 is known to be unavailable
+1239007176.625,H1,scattered,ValueError: Input signal contains non-numerical values
+1242986286.09375,H1,scattered,ValueError: Input signal contains non-numerical values
+1238367302.03125,H1,control,BlockUnavailable: H1 block 302335 is known to be unavailable
+1238367321.5625,H1,control,BlockUnavailable: H1 block 302335 is known to be unavailable
+1238367362.90625,H1,control,BlockUnavailable: H1 block 302335 is known to be unavailable
+1238367418.71875,H1,control,BlockUnavailable: H1 block 302335 is known to be unavailable
+1238367612.34375,H1,control,BlockUnavailable: H1 block 302335 is known to be unavailable
+1238367712.1875,H1,control,BlockUnavailable: H1 block 302335 is known to be unavailable
+1238367730.53125,H1,control,BlockUnavailable: H1 block 302335 is known to be unavailable
+1238367748.3125,H1,control,BlockUnavailable: H1 block 302335 is known to be unavailable
+1238367937.28125,H1,control,BlockUnavailable: H1 block 302335 is known to be unavailable
+1238368009.15625,H1,control,BlockUnavailable: H1 block 302335 is known to be unavailable
+1238368060.28125,H1,control,BlockUnavailable: H1 block 302335 is known to be unavailable
+1238368098.84375,H1,control,BlockUnavailable: H1 block 302335 is known to be unavailable
+1238538964.6875,H1,control,ValueError: Input signal contains non-numerical values
+1238555455.6875,H1,control,ValueError: Input signal contains non-numerical values

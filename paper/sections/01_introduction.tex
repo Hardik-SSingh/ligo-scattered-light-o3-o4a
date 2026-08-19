@@ -1,0 +1,181 @@
+\section{Introduction}
+\label{sec:introduction}
+
+\subsection{Transient noise and why its shape matters}
+
+The Advanced LIGO detectors \citep{AdvancedLIGO2015} reach strain sensitivities
+of order $10^{-23}\,\mathrm{Hz}^{-1/2}$, and at that level the data are not
+Gaussian. Short bursts of excess power --- \emph{glitches} --- occur at rates
+of order one per minute, and they matter for two reasons: they reduce the
+livetime available for astrophysical search, and they can mimic or corrupt real
+signals \citep{Davis2021}. Detector characterisation exists to find them,
+explain them, and where possible remove their cause from the instrument.
+
+The productive question about a glitch is rarely ``how loud was it'' but
+``what shape was it''. Glitch classes are defined morphologically, in the
+time--frequency plane, and the morphology is what points back to a mechanism.
+The Gravity Spy project \citep{Zevin2017,Glanzer2023} formalised this by
+combining citizen-science labelling with a convolutional classifier over
+$22$ morphological classes, and its classification release for the first three
+observing runs is now the standard labelled dataset for this kind of work.
+
+\subsection{Scattered light}
+
+Among those classes, \emph{scattered light} is unusual in that its physical
+mechanism is understood in closed form.
+
+A small fraction of the circulating beam leaves the main path, strikes a
+nearby surface --- a baffle, a suspended optic, a viewport --- and rejoins the
+beam. Having traversed the extra path twice, the recombining field has
+acquired a phase
+%
+\begin{equation}
+  \phi(t) = \frac{4\pi\,x(t)}{\lambda},
+  \label{eq:phase}
+\end{equation}
+%
+where $x$ is the displacement of the scattering surface along the beam and
+$\lambda = \SI{1064}{\nano\metre}$ is the Advanced LIGO laser wavelength. When
+$\phi$ stays well below a radian the coupling is linear and the scattered light
+simply adds a small amount of noise at the frequency of the motion. When $\phi$
+exceeds a radian --- which requires only a fraction of a micron of
+displacement --- the modulation is strongly non-linear, and the noise appears
+at the instantaneous frequency
+%
+\begin{equation}
+  f_1(t) = \frac{1}{2\pi}\left|\frac{\mathrm{d}\phi}{\mathrm{d}t}\right|
+         = \frac{2}{\lambda}\,|v(t)|,
+  \label{eq:f1}
+\end{equation}
+%
+with $v = \mathrm{d}x/\mathrm{d}t$. Numerically,
+$2/\lambda = \SI{1.88e6}{\hertz\per(\metre\per\second)}$: every micron per
+second of surface velocity produces \SI{1.88}{\hertz} of noise frequency.
+
+Light that makes $n$ round trips between the two surfaces before rejoining
+accumulates $n$ times the phase, so the noise appears simultaneously at every
+harmonic
+%
+\begin{equation}
+  f_n(t) = n\,\frac{2}{\lambda}\,|v(t)|, \qquad n = 1, 2, 3, \ldots
+  \label{eq:fn}
+\end{equation}
+%
+with amplitudes falling off as the bounce order rises. In a Q-scan this
+produces the characteristic picture: a comb of smooth, harmonically spaced
+ridges, all peaking at the same instant.
+
+Two consequences of \cref{eq:fn} carry the whole analysis.
+
+\paragraph{The arch period measures the driving motion.} Because $f_n$ depends
+on $|v|$ rather than on $v$, it reaches a maximum twice per cycle of the
+motion. The observed arch repetition period is therefore \emph{half} the
+period of the disturbance,
+%
+\begin{equation}
+  \fdrive = \frac{1}{2\,\Tarch}.
+  \label{eq:fdrive}
+\end{equation}
+%
+A measured $\Tarch$ of \SI{3.3}{\second} implies a driver at
+\SI{0.15}{\hertz}, squarely in the microseismic band; a measured
+\SI{0.25}{\second} implies \SI{2}{\hertz}, in the anthropogenic band. The
+morphology alone, with no auxiliary data at all, identifies the class of
+disturbance.
+
+\paragraph{The harmonic spacing measures the fundamental.} At the apex of an
+arch train, all harmonics peak together, so a frequency slice through the apex
+is a comb with spacing $f_1^{\max} = 2 v_{\mathrm{peak}}/\lambda$. The spacing
+is thus a direct readout of the peak surface velocity, again from strain alone.
+
+\subsection{What is already known}
+
+\citet{Soni2021Scattering} characterised scattering throughout O3 and
+identified two distinct populations at LIGO: a \emph{slow} component driven by
+the \SIrange{0.1}{0.3}{\hertz} microseism, whose arches recur every few
+seconds and reach a few tens of hertz, and a \emph{fast} component driven by
+\SIrange{1}{6}{\hertz} motion, whose arches recur several times per second.
+They traced the dominant O3 slow-scattering coupling to relative motion of a
+few microns between the main suspension chain and its reaction chain, and
+demonstrated mitigation by damping that relative motion. A witness-channel
+algorithm predicting when scattering should be present is a central result of
+that work, and \cref{eq:fn} is its basis.
+
+Related work has established the surrounding picture: environmental coupling
+paths in general \citep{Nguyen2021}, scattering from end benches at Virgo
+\citep{Was2021,Accadia2010}, and the O3 data-quality products
+\citep{Davis2021}. For the fourth run, \citet{Capote2025} document the
+instrument performance and \citet{Soni2024O4} the detector characterisation of
+its first half. Most directly relevant, \citet{Nandi2026} report on scattered
+light at Livingston during O4 and again find two populations, one traced to
+microseismic ground motion and mitigated by baffle installation, the other to
+vertical ground motion coupling through a vacuum chamber.
+
+That body of work is, however, built on internal LIGO data: full auxiliary
+channel sets, engineering records, and access to the instrument. The present
+study asks a narrower and quite different question.
+
+\subsection{This work}
+
+\emph{How much of the scattered-light story can be reconstructed from public
+data alone, and does the answer change between O3 and O4a?}
+
+The question is worth asking for two reasons. It is a genuine test of what the
+open data releases support, which is useful to anyone outside the
+collaboration. And it forces every inference to be made from quantities that
+can be independently checked, which is a discipline that internal-data
+analyses do not always impose.
+
+The analysis proceeds in five steps.
+
+\begin{enumerate}
+  \item A labelled O3 sample of scattered-light triggers is drawn from the
+        Gravity Spy release \citep{GravitySpyData2021}, together with a
+        control sample of other glitch classes.
+  \item Each trigger is Q-transformed \citep{Chatterji2004} and reduced to a
+        twenty-element morphology feature vector, described in
+        \cref{sec:methods}, whose components are the physical quantities of
+        \crefrange{eq:fn}{eq:fdrive} rather than generic image statistics.
+  \item The O3 sample is tied to physical cause using the public auxiliary
+        channels: the hourly trigger rate is rank-correlated against
+        seismometer band-limited RMS, and the predictor of \cref{eq:fn} is
+        fitted trigger by trigger to a suspension witness.
+  \item A classifier trained on the O3 features is applied to a
+        livetime-limited blind search of O4a strain.
+  \item The two populations are compared in rate, in slow/fast composition,
+        and feature by feature.
+\end{enumerate}
+
+Steps 3 and 4 are shaped by two properties of the public releases that were
+established before any code was written and that are reported here as results
+in their own right, because they are not stated plainly anywhere else:
+
+\begin{itemize}
+  \item \textbf{No Gravity Spy classification catalogue exists for O4a.} The
+        Zenodo release \citep{GravitySpyData2021} covers O1 through O3b. The
+        O4a Gravity Spy model is described by \citet{Wu2025} but no catalogue
+        accompanies it. Independent confirmation comes from
+        \citet{Cirfeta2026}, who work on O4a without labels and use the O3b
+        Gravity Spy set as their reference index --- exactly the workaround
+        that O4a labels would render unnecessary.
+  \item \textbf{The O4a auxiliary release contains no motion witness.} Its
+        $25$ channels \citep{GWOSCO4Aux} are calibration lines, input
+        mode-cleaner wavefront sensors, photon-calibrator readouts, mains
+        monitors and parametric-instability monitors. There is no
+        seismometer, accelerometer, microphone or suspension channel, so
+        neither the rate correlation nor the per-trigger predictor can be
+        computed for O4a from public data.
+\end{itemize}
+
+The O3 auxiliary release, by contrast, proved richer than expected:
+$86$ full-rate channels and $402$ second-trend channels
+\citep{GWOSCO3Aux}, including the complete ground-seismometer band-limited RMS
+family across the earthquake, microseismic and anthropogenic bands at both
+sites, and --- crucially --- \code{L1:SUS-OM3\_M1\_DAMP\_L\_IN1\_DQ} at
+\SI{256}{\hertz}, a genuine optic-motion witness and the only full-rate one in
+either release.
+
+\Cref{sec:data} sets out the data and verifies its availability;
+\cref{sec:methods} the analysis; \cref{sec:validation} the validation against
+simulated injections with known parameters; \cref{sec:results} the results;
+\cref{sec:discussion} their interpretation and limits.

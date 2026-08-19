@@ -1,0 +1,327 @@
+\section{Method}
+\label{sec:methods}
+
+\subsection{Q-transform maps}
+\label{sec:methods:qscan}
+
+Each trigger is analysed on a normalised-energy Q-transform map
+\citep{Chatterji2004}. The transform tiles the time--frequency plane with
+constant-$Q$ bisquare windows and reports, for each tile,
+%
+\begin{equation}
+  Z = \frac{|X|^2}{\langle |X|^2 \rangle},
+  \label{eq:normenergy}
+\end{equation}
+%
+the ratio of tile energy to the mean over tiles at the same frequency. For
+stationary Gaussian noise $Z$ is exponentially distributed with unit mean, so
+$\sqrt{2Z}$ is the single-tile signal-to-noise ratio. The implementation is
+\code{gwpy}'s \code{q\_transform} \citep{Macleod2021GWpy}, which is the same
+algorithm used by the LIGO detector-characterisation tools; the standard
+\code{gwdetchar} wrapper is not used because its dependency chain has no
+Windows build, and nothing beyond the transform itself is needed.
+
+\SI{64}{\second} of strain is fetched around each trigger and only the central
+\SI{16}{\second} is analysed. The padding is not decorative: the whitening
+filter and the constant-$Q$ filters both ring, and the resulting transients
+are exactly the kind of structure a ridge tracker would mistake for an arch.
+The configuration enforces that the padding exceeds the analysed window.
+
+Two parameters were set by validation rather than by convention, and both
+mattered.
+
+\paragraph{The $Q$ range is capped at 16.} \code{gwpy} selects the $Q$ plane of
+maximum energy. Left unconstrained it selects $Q \approx 45$ for a scattering
+train, because a high-$Q$ plane integrates the quasi-periodic structure
+coherently and reports enormous energy. But a tile of quality factor $Q$ at
+frequency $f$ lasts $Q/2\pi f$ seconds --- \SI{0.16}{\second} at $Q = 45$ and
+\SI{45}{\hertz} --- which is comparable to the repetition period of fast
+scattering. The arches are then unresolved. On a simulated fast event with an
+injected arch period of \SI{0.250}{\second}, the uncapped transform returned
+\SI{4.99}{\second}: wrong by a factor of twenty. With the cap it returns
+\SI{0.250}{\second}.
+
+\paragraph{The ridge threshold is $Z = 20$, not $Z = 5.5$.} A threshold has to
+sit above the largest energy a \emph{noise-only} map produces, not merely
+above its mean. A map of this size holds of order $10^4$ independent tiles,
+whose expected maximum is $\ln(10^4) \approx 9$ before the multi-$Q$ search is
+taken into account and $\approx 16$ after. At $Z = 5.5$ --- a natural-looking
+choice, corresponding to single-tile SNR $3.3$ --- a pure-noise map produced
+hundreds of supra-threshold bins and the measured maximum arch frequency
+saturated at the top of the analysis band. $Z = 20$ (single-tile SNR $6.3$)
+clears the noise; a connected-component filter removes the residue.
+
+\subsection{Ridge extraction}
+\label{sec:methods:ridge}
+
+From the thresholded map, three tracks are formed per time bin: the frequency
+of the loudest tile, the highest supra-threshold frequency, and the lowest.
+The second of these --- the \emph{arch envelope} --- is the quantity the
+auxiliary predictor predicts, and is what the morphology features describe.
+
+Connected supra-threshold regions smaller than $40$ output pixels are
+discarded. Because the output grid is interpolated from far coarser $Q$ tiles,
+a single hot tile already spans tens of pixels, so this is a speck filter
+rather than a significance cut; the significance is carried by the threshold.
+
+\subsection{Morphology features}
+\label{sec:methods:features}
+
+Each map is reduced to the twenty features listed in \cref{app:features}.
+They fall into five groups: extent (peak, maximum and minimum frequency,
+bandwidth, duration, SNR); arch structure (count, repetition period, period
+scatter); harmonic structure (count and spacing at the apex); shape (RMS slope
+and curvature of the envelope, ratio of rising to falling time); and energy
+distribution (fraction below \SI{40}{\hertz}, fraction above
+\SI{100}{\hertz}, spectral centroid, band concentration, time symmetry).
+
+They are computed on the normalised-energy map, so they are insensitive to the
+absolute calibration and directly comparable between detectors and between
+runs. Where a feature is undefined --- \code{arch\_period} when fewer than two
+arches are found --- it is returned as \code{NaN} rather than as a fabricated
+value, and the classifier treats the missingness as informative.
+
+Two of them deserve comment.
+
+\paragraph{Arch period, from the autocorrelation.} The obvious estimator is
+the median spacing between detected envelope maxima. It fails in exactly the
+case that matters: when the topmost harmonic dips below threshold the envelope
+drops to the harmonic below, creating a spurious local maximum that splits one
+arch into two. On a simulated slow event with an injected period of
+\SI{3.33}{\second}, peak spacing returned \SI{2.80}{\second} --- \SI{16}{\percent}
+low. The autocorrelation of the envelope is insensitive to this, because the
+periodicity is present in every harmonic simultaneously; it returns
+\SI{3.36}{\second}. The peak count is still reported separately, as
+\code{n\_arches}.
+
+\paragraph{Maximum arch frequency is biased high, and stays that way.} A $Q$
+tile has bandwidth $f/Q$, so the supra-threshold region extends above the true
+apex of the arch by roughly half of that. Measured against injections, the
+bias is about \SI{15}{\percent}. It is not tuned away: it is measured,
+asserted in the test suite, and quoted with the result. Since it applies
+identically to both runs it cancels in the O3-versus-O4a comparison, which is
+where the feature is actually used.
+
+\subsection{From triggers to events, and from events to blocks}
+\label{sec:methods:sampling}
+
+Two properties of the real data, neither visible until the catalogue and the
+strain server were in hand, determine how the sample is built. Both are
+recorded here because each one changes a number that would otherwise be
+reported.
+
+\paragraph{The catalogue lists triggers, not events.} Gravity Spy publishes
+Omicron triggers. After the cuts of \cref{sec:data:gravityspy},
+\SI{12.3}{\percent} of rows share an exact $(\mathrm{event\ time},
+\mathrm{detector})$ pair -- the same trigger under several Gravity Spy subject
+identifiers, one per Q-scan duration view -- and about half of all triggers
+fall within \SI{8}{\second} of another one, which is to say inside each other's
+analysed Q-scan window. Those triggers therefore produce \emph{identical}
+feature vectors.
+
+Left alone, every morphology distribution would be weighted by how many
+Omicron triggers a given arch train happened to generate: loud, long trains
+counted dozens of times, quiet ones once. That is a selection effect acting
+directly on the axis this study measures. Worse, it is class-dependent.
+Clustering at \SI{16}{\second} -- the full width of the analysed window, so
+that no two retained events can share a Q-scan -- yields \num{2.44} triggers
+per event for scattered light but only \num{1.35} for the control classes.
+Uncorrected, scattering would have been over-represented by some
+\SI{80}{\percent} relative to the controls, biasing both the classifier's
+training set and every rate comparison. The same window is applied to the O4a
+search output, so the two runs count the same kind of thing.
+
+The unclustered trigger list is retained as well: the rate correlation of
+\cref{sec:methods:ratecorr} legitimately uses \emph{trigger} rate, and each
+result states which of the two it quotes.
+
+\paragraph{The unit of cost is the file, not the event.} GWOSC serves open
+strain in HDF5 files of \SI{4096}{\second}, and a request for any
+sub-interval downloads the whole containing file: two to four minutes on a
+domestic connection, essentially independent of how much was asked for. A
+\SI{64}{\second} Q-scan window therefore costs one full download, and a
+time-stratified sample of \num{4800} individual events touched \num{3484}
+distinct files -- about \num{1.4} events per download, or three days of wall
+clock.
+
+The analysis is restructured around that. Windows are cut from whole blocks
+held in a small in-memory cache, and the sample is drawn as \emph{blocks
+first, events within blocks second}: \num{100} blocks per detector per epoch,
+stratified across each epoch's span, with up to \num{12} events taken at
+random from each. That gives \num{2256} scattered-light events from \num{400}
+blocks, and the measured yield in a production run is about ten events per
+download. The control sample is drawn from the \emph{same} blocks, which costs
+no extra downloads and removes a confound at the same time: signal and
+background then come from identical stretches of data, so the classifier
+cannot separate the two classes by learning what a noisy night looks like.
+
+The price is real and is carried into the interpretation. Events drawn from
+one block share ground-motion conditions and are therefore correlated, so the
+effective sample size is smaller than the row count: it is the \emph{block}
+count, not the event count, that carries the statistical weight. Events are
+taken at random within a block rather than by loudness, which would bias the
+sample towards the tail.
+
+\subsection{Rate-level auxiliary correlation}
+\label{sec:methods:ratecorr}
+
+Triggers are binned into GPS hours and divided by the analysis-ready livetime
+in each hour. Hours with zero livetime and hours with zero triggers are
+different things: the former must be dropped, the latter kept as genuine
+zeros. Conflating them is a reliable way to manufacture a spurious correlation
+with anything that tracks duty cycle, ground motion included.
+
+Each hourly rate series is rank-correlated (Spearman $\rho$) against the
+hourly median band-limited RMS of every configured seismometer channel. The
+median within an hour is used rather than the mean because the trend channels
+contain occasional large excursions --- earthquakes, calibration activity ---
+whose effect on an hourly mean is out of proportion to how much of the hour
+they occupy.
+
+Fetching those trends has its own constraints, measured against the live
+server rather than assumed. The GWOSC NDS host serves a four-hour request but
+refuses eight; nine channels requested together cost \SI{11.3}{\second}
+against \SI{40.8}{\second} one at a time, so requests are batched; and
+requests are issued only for chunks that overlap analysis-ready segments,
+since a chunk with no livetime contributes nothing to a rate correlation.
+Availability looked poor when probed at fixed calendar offsets and turned out
+to be complete -- 18 of 18 -- when probed uniformly in livetime, the earlier
+failures having been non-observing time.
+
+Confidence intervals come from a moving-block bootstrap
+\citep{Kunsch1989} with a six-hour block. This matters: the microseism varies
+on a timescale of days, so hourly rates are strongly autocorrelated and the
+naive standard error on $\rho$ is far too small. Three further checks guard
+against the standard failure modes:
+
+\begin{itemize}
+  \item a \textbf{quantile table}, giving the mean rate in each quartile of
+        the driving channel and the top-to-bottom ratio, so that the result is
+        stated in units a commissioner can act on rather than as a correlation
+        coefficient;
+  \item a \textbf{lag scan} over $\pm\SI{12}{\hour}$. Scattering responds to
+        ground motion essentially instantaneously, so the correlation must
+        peak at zero lag. A peak at large lag would indicate that both series
+        are being driven by a slow common trend --- diurnal or weather ---
+        rather than by the mechanism under test;
+  \item a \textbf{partial correlation}, testing whether an apparent
+        correlation with the \SIrange{1}{6}{\hertz} anthropogenic band
+        survives once the microseism is controlled for.
+\end{itemize}
+
+\subsection{Trigger-level scattering predictor}
+\label{sec:methods:predictor}
+
+For \Lone, where a full-rate motion witness is public, the predictor of
+\cref{eq:fn} is tested trigger by trigger.
+
+The witness is band-passed over \SIrange{0.03}{10}{\hertz} --- the lower
+corner removes the DC drift that differentiation would otherwise amplify into
+a ramp --- and differentiated to give velocity. Harmonics $n = 1 \ldots 8$ of
+\cref{eq:fn} are then compared with the measured arch envelope. A ridge point
+at frequency $f$ counts as \emph{explained} if some harmonic lies within
+$\max(\SI{1.5}{\hertz},\, 0.15 f)$ of it, and the headline statistic is the
+fraction of supra-threshold time bins that are explained.
+
+\paragraph{The one free parameter.} GWOSC publishes auxiliary channels in raw
+counts with no calibration to metres. Rather than invent one, a single scale
+factor $\alpha$ (metres per count) is fitted per detector and epoch by
+maximising the mean explained fraction over a training set of triggers, using
+a logarithmic grid over eight decades followed by a golden-section refinement.
+It is then \emph{frozen} and applied to a disjoint validation set, on which the
+quoted agreement is measured. The width of the range over which the objective
+stays within \SI{1}{\percent} of its maximum is reported alongside: a narrow
+range means the fit is well constrained, a wide one is a warning that the
+witness does not in fact track the scattering surface.
+
+\Cref{sec:validation} shows this procedure recovering a known calibration from
+a synthetic witness to \SI{7}{\percent}.
+
+\subsection{The strain-only identifier}
+\label{sec:methods:classifier}
+
+To carry the O3 definition of the class into O4a, a gradient-boosted tree
+classifier \citep{Friedman2001,Pedregosa2011} is trained on the O3 features to
+separate \emph{Scattered\_Light} from the control classes. Missing features are
+median-imputed with a missingness indicator, so that ``no arch period could be
+measured'' is available to the model as information rather than being silently
+filled in.
+
+Performance is measured by stratified five-fold cross-validation, and the
+operating point is fixed at a false-positive rate of $0.01$ against the
+control sample, then frozen.
+
+A third constraint is arithmetic and binds harder than either of the caveats
+below. An operating point can only be placed as finely as the background
+sample resolves: at a false-positive rate $p$ with $n$ control events per fold,
+the threshold is fixed by $p\,n$ expected false positives. Trained on a trial
+sample of 66 controls, the cross-validated AUC was a stable
+$0.919 \pm 0.033$ while the efficiency at $p = 0.01$ came out
+$0.368 \pm 0.334$, with individual folds returning $0.000$ (at an infinite
+threshold), $0.160$, $0.680$, $0.760$ and $0.240$ --- because $p\,n = 0.13$,
+so the threshold was decided by whether zero or one event happened to land
+above it. The code now computes $p\,n$, warns below five, and records the fact
+in the saved model; the production control sample gives $p\,n \approx 7$ and
+clears it. The AUC is threshold-free and unaffected throughout.
+
+Two further caveats travel with those numbers and are repeated wherever they
+are quoted. The efficiency and false-positive rate are measured against the
+\emph{Gravity Spy control classes}, so they say how well the model separates
+scattered light from other known O3 glitch classes; they do not and cannot
+measure performance against whatever unlabelled O4a contains. And the folds
+are not grouped in time, so triggers minutes apart can land in different
+folds, making the quoted AUC mildly optimistic. The sample is drawn stratified
+across the whole run, which makes such neighbours rare but does not eliminate
+them.
+
+\subsection{The O4a search}
+\label{sec:methods:search}
+
+With no O4a trigger catalogue, triggers are generated from strain. The
+statistic is the \SI{0.25}{\second} RMS of whitened, band-passed
+(\SIrange{10}{120}{\hertz}) strain, converted to a robust $z$-score using the
+median and median-absolute-deviation of the surrounding stretch. Robust
+statistics are essential here: during a scattering-heavy hour a large fraction
+of the data is glitching, and a mean/standard-deviation normalisation would be
+dragged upward by the very signal it is meant to detect. Candidates are
+clustered with a \SI{4}{\second} window, since an arch train is one physical
+event lasting seconds, and candidates within the whitening-filter transient at
+either end are discarded.
+
+This is a deliberately loose stand-in for Omicron: its job is to lose no
+scattering, not to be pure. Purity is the classifier's job.
+
+\paragraph{Livetime, not calendar time.} A full O4a search is out of reach on
+the hardware available. The search draws $1200$ windows of \SI{512}{\second}
+per detector, sampled uniformly in livetime --- about \SI{7.1}{\day} each,
+roughly \SI{4}{\percent} of the run. All rates are therefore quoted per hour of
+\emph{analysed} livetime, and the coverage fraction is recorded with every
+result.
+
+\paragraph{Like-for-like comparison.} The identical search is also run on O3b.
+This is what makes the comparison interpretable: with the same trigger
+generator and the same classifier on both sides, a difference in rate or
+morphology cannot be attributed to the change from the Gravity Spy pipeline to
+this one. The comparison against the Gravity Spy O3 sample is also reported,
+since it has better labels; where the two agree the result is robust, and
+where they disagree the difference is a selection effect and is reported as
+such.
+
+\subsection{Population statistics}
+\label{sec:methods:stats}
+
+Rates are Poisson counts over a known livetime, so intervals are exact
+(Garwood) Poisson intervals rather than $\sqrt{N}$.
+
+Feature distributions are compared with the two-sample Kolmogorov--Smirnov
+test for the $p$-value and with Cliff's $\delta$ \citep{Cliff1993} for the
+effect size. With tens of thousands of triggers per sample essentially every
+KS test rejects, so the $p$-value carries little information; the effect size
+is what carries the physics and is quoted first. Because many features are
+tested at once, $p$-values are corrected by the Benjamini--Hochberg procedure
+\citep{BenjaminiHochberg1995} and the corrected values are the ones reported.
+
+The headline slow-fraction change is a difference of two binomial proportions,
+reported with a Newcombe score-based interval \citep{Newcombe1998}, which
+behaves correctly as a proportion approaches $0$ or $1$ where the Wald
+interval does not.

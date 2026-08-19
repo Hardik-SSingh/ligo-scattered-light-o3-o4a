@@ -1,0 +1,198 @@
+% =====================================================================
+%  Q-scan morphology of scattered-light transients in LIGO O3 and O4a
+%  Hardik Sher Singh, Thapar Institute of Engineering and Technology
+%
+%  Compile on Overleaf with pdfLaTeX:
+%      pdflatex main -> bibtex main -> pdflatex main -> pdflatex main
+%  (Overleaf's default recipe does this automatically.)
+%
+%  Figures are read from ../results/figures if the LaTeX source sits inside
+%  the analysis repository, and from ./figures if the paper/ directory has
+%  been uploaded to Overleaf on its own.  Both paths are declared below, so
+%  neither arrangement needs an edit.
+% =====================================================================
+
+\documentclass[11pt,a4paper]{article}
+
+% ---- layout ---------------------------------------------------------
+\usepackage[margin=2.4cm]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+\usepackage{parskip}
+
+% ---- encoding and fonts ---------------------------------------------
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+% ---- maths ----------------------------------------------------------
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{bm}
+\usepackage{siunitx}
+\sisetup{
+  range-units      = single,
+  separate-uncertainty = true,
+  detect-weight    = true,
+}
+
+% ---- figures and tables ---------------------------------------------
+\usepackage{graphicx}
+\graphicspath{{../results/figures/}{figures/}{./}}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{subcaption}
+\usepackage{float}
+
+% ---- code -----------------------------------------------------------
+\usepackage{xcolor}
+\definecolor{codebg}{RGB}{247,247,247}
+\definecolor{coderule}{RGB}{220,220,220}
+\definecolor{keyword}{RGB}{0,90,150}
+\definecolor{comment}{RGB}{110,110,110}
+\usepackage{listings}
+\lstset{
+  basicstyle    = \ttfamily\footnotesize,
+  keywordstyle  = \color{keyword}\bfseries,
+  commentstyle  = \color{comment}\itshape,
+  stringstyle   = \color{comment},
+  backgroundcolor = \color{codebg},
+  frame         = single,
+  rulecolor     = \color{coderule},
+  breaklines    = true,
+  showstringspaces = false,
+  columns       = flexible,
+  xleftmargin   = 0.5em,
+  language      = Python,
+}
+
+% ---- references and links -------------------------------------------
+\usepackage[numbers,sort&compress]{natbib}
+\bibliographystyle{unsrtnat}
+\usepackage[hidelinks,breaklinks]{hyperref}
+\hypersetup{
+  pdftitle  = {Q-scan morphology of scattered-light transients in LIGO O3 and O4a},
+  pdfauthor = {Hardik Sher Singh},
+  colorlinks = true,
+  linkcolor  = black,
+  citecolor  = black,
+  urlcolor   = blue!55!black,
+}
+\usepackage[nameinlink,capitalise]{cleveref}
+
+% ---- placeholders for numbers the pipeline has not yet produced -----
+%  \result{...} renders in a visible colour so that no unfilled number can
+%  reach a reader mistaken for a measurement.  Stage 06 of the pipeline
+%  writes numbers.tex, which redefines these to the measured values.
+\providecommand{\result}[1]{\textcolor{red!75!black}{\textbf{[#1]}}}
+
+%  Every inline quantity quoted in the text is declared here with a visible
+%  default.  Stage 06 writes numbers.tex, which \renewcommands them to the
+%  measured values.  Declaring them here rather than only in numbers.tex means
+%  a key the pipeline forgot to emit shows up as a red placeholder, and a key
+%  it emits under the wrong name is a LaTeX error -- neither can pass silently.
+\newcommand{\ResultStrongestFeature}{\result{feature}}
+\newcommand{\ResultStrongestDelta}{\result{delta}}
+\newcommand{\ResultStrongestChannel}{\result{channel}}
+\newcommand{\ResultStrongestRho}{\result{rho}}
+\newcommand{\ResultQuartileRatio}{\result{ratio}}
+\newcommand{\ResultLagPeak}{\result{lag}}
+\newcommand{\ResultClassifierAuc}{\result{AUC}}
+\newcommand{\ResultClassifierEfficiency}{\result{efficiency}}
+%  Names are exactly what gwglitch.latex.macro_name() produces from the
+%  pipeline's keys: digits are spelled out because TeX forbids them in a
+%  control sequence, so "o4a" becomes "OFoura".  Ugly, but mechanical and
+%  therefore reliable; tests/test_latex.py checks the two stay in step.
+\newcommand{\ResultCoverageOFoura}{\result{coverage}}
+\newcommand{\ResultRateRatioHOne}{\result{ratio}}
+\newcommand{\ResultRateRatioLOne}{\result{ratio}}
+\newcommand{\ResultSlowShiftHOne}{\result{change}}
+\newcommand{\ResultSlowShiftLOne}{\result{change}}
+\newcommand{\ResultSlowFractionOThreeHOne}{\result{f}}
+\newcommand{\ResultSlowFractionOThreeLOne}{\result{f}}
+\newcommand{\ResultSlowFractionOFouraHOne}{\result{f}}
+\newcommand{\ResultSlowFractionOFouraLOne}{\result{f}}
+
+%  \generated{name}{fallback rows} inserts a pipeline-generated table body if
+%  it exists and the placeholder rows otherwise, so the document compiles at
+%  every stage of completeness.
+%  \generated{name} pulls in the pipeline-written body rows of a table if
+%  they exist, and the placeholder rows otherwise.  Note that the fallback is
+%  a FILE, not an argument: table rows contain & and \\, and TeX cannot
+%  absorb an alignment separator into a macro argument -- doing so silently
+%  swallows every row into a single cell and the table then fails with a
+%  misplaced \noalign at the \bottomrule.  Both branches here are bare
+%  \input calls, so neither ever sees an & at all.
+\newcommand{\generated}[1]{%
+  \IfFileExists{generated/#1.tex}%
+    {\input{generated/#1}}%
+    {\input{placeholders/#1}}%
+}
+
+\IfFileExists{numbers.tex}{\input{numbers.tex}}{}
+
+% ---- figures that may not exist yet ---------------------------------
+%  \safefig[width]{name} includes results/figures/<name>.{pdf,png} if it is
+%  there, and otherwise draws a labelled placeholder box.  This lets the
+%  document compile before the production run has generated its figures,
+%  without silently omitting them.
+\makeatletter
+\newcommand{\safefig}[2][\textwidth]{%
+  \IfFileExists{../results/figures/#2.pdf}{\includegraphics[width=#1]{#2}}{%
+  \IfFileExists{figures/#2.pdf}{\includegraphics[width=#1]{#2}}{%
+  \IfFileExists{../results/figures/#2.png}{\includegraphics[width=#1]{#2}}{%
+  \IfFileExists{figures/#2.png}{\includegraphics[width=#1]{#2}}{%
+    \setlength{\fboxsep}{0pt}%
+    \fcolorbox{black!25}{black!3}{%
+      \parbox[c][0.26\textheight][c]{#1}{%
+        \centering\small\ttfamily
+        \textcolor{black!55}{figure not yet generated}\\[0.5em]
+        \detokenize{#2}\\[0.5em]
+        \textcolor{black!55}{\detokenize{python scripts/07_make_figures.py}}%
+      }}%
+  }}}}%
+}
+\makeatother
+
+% ---- shorthands ------------------------------------------------------
+\newcommand{\Hone}{\mbox{H1}}
+\newcommand{\Lone}{\mbox{L1}}
+\newcommand{\Otza}{\mbox{O3a}}
+\newcommand{\Otzb}{\mbox{O3b}}
+\newcommand{\Ofa}{\mbox{O4a}}
+\newcommand{\Tarch}{T_{\mathrm{arch}}}
+\newcommand{\fdrive}{f_{\mathrm{drive}}}
+\newcommand{\code}[1]{\texttt{\small #1}}
+
+% LIGO channel names are long, unbreakable, and appear inline throughout.
+% Give TeX a little room rather than letting them push into the margin.
+\setlength{\emergencystretch}{3.5em}
+\hbadness=3000
+
+% =====================================================================
+\begin{document}
+
+\input{sections/00_title}
+
+\tableofcontents
+\clearpage
+
+\input{sections/01_introduction}
+\input{sections/02_data}
+\input{sections/03_methods}
+\input{sections/04_validation}
+\input{sections/05_results}
+\input{sections/06_discussion}
+\input{sections/07_conclusions}
+
+\clearpage
+\bibliography{references}
+
+\appendix
+\input{sections/A_features}
+\input{sections/B_reproducibility}
+
+\end{document}

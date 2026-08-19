@@ -1,0 +1,189 @@
+﻿\section{Reproducibility}
+\label{app:reproducibility}
+
+\subsection{Environment}
+
+The analysis runs on Python 3.11 with \code{gwpy}, \code{numpy}, \code{scipy},
+\code{pandas}, \code{scikit-learn}, \code{matplotlib} and
+\code{python-nds2-client}. The full specification is
+\code{environment.yml}:
+
+\begin{lstlisting}[language=bash]
+conda env create -f environment.yml
+conda activate gwglitch
+pip install -e . --no-deps
+\end{lstlisting}
+
+Two aspects of that file are load-bearing and are recorded here because they
+cost real time to diagnose.
+
+\paragraph{OpenBLAS is pinned.} The unconstrained conda-forge solve selects
+MKL 2026.1.0, in which every LAPACK call terminates the interpreter with
+\code{STATUS\_STACK\_BUFFER\_OVERRUN} (exit code \code{0xC0000409}) and no
+Python traceback whatsoever. \code{numpy.linalg.lstsq},
+\code{numpy.linalg.solve}, \code{scipy.signal.detrend} and every
+\code{scikit-learn} regression die silently. \code{environment.yml} pins the
+OpenBLAS builds of \code{libblas}, \code{libcblas} and \code{liblapack}, and
+the environment check exercises the backend directly so that a recurrence is
+caught in a second rather than hours into a run.
+
+\paragraph{\code{gwdetchar} is absent by design.} Its dependency chain
+(\code{lalsuite}, \code{dqsegdb2}, \code{gwdatafind}) has no \code{win-64}
+build on conda-forge, so it cannot be installed in a native Windows
+environment. Everything the analysis needs from it --- the Q-transform and the
+omega-scan rendering --- is built on \code{gwpy}'s \code{q\_transform}, which
+is pure Python and SciPy. The transform is the same algorithm
+\citep{Chatterji2004}; only the plotting wrapper differs.
+
+\subsection{Verification before running}
+
+\begin{lstlisting}[language=bash]
+python scripts/00_check_environment.py
+\end{lstlisting}
+
+This checks package versions, exercises LAPACK and the SciPy filter design
+directly, parses the configuration and its channel lists, and confirms that
+GWOSC open strain, the NDS auxiliary server and the segment API all answer for
+both O3 and O4a. It exits non-zero on any mandatory failure. The run reported
+in \cref{sec:data} passed all six sections.
+
+\subsection{Pipeline stages}
+
+Each stage is a standalone program, resumable, and writes a JSON provenance
+sidecar next to its output recording the configuration path, the random seed,
+the software versions and the stage-specific parameters.
+
+\begin{longtable}{%
+  >{\raggedright\arraybackslash}p{5.7cm}%
+  >{\raggedright\arraybackslash}p{8.3cm}}
+\toprule
+Stage & What it does \\
+\midrule
+\endfirsthead
+\toprule
+Stage & What it does \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\code{00\_check\_environment.py} &
+Verifies packages, LAPACK, configuration and every remote service. \\[0.3em]
+
+\code{01\_fetch\_gravityspy\_catalog.py} &
+Downloads the four O3 CSVs ($\sim$\SI{560}{\mega\byte}) from Zenodo 5649212,
+applies the selection cuts, and draws the time-stratified target and control
+sub-samples. \\[0.3em]
+
+\code{02\_run\_qscans.py} &
+Q-scans each trigger and extracts the feature vector. The long stage:
+network-bound at roughly one trigger per second. Checkpoints every $100$
+triggers and skips completed work, so it can be interrupted freely. \\[0.3em]
+
+\code{03\_aux\_correlation.py} &
+The O3 auxiliary analysis: hourly rate against ground-motion band-limited RMS
+with block-bootstrap intervals, quantile table, lag scan and partial
+correlation; plus the per-trigger predictor fitted on the \Lone{} OM3 witness.
+Refuses to run on an O4 epoch. \\[0.3em]
+
+\code{04\_train\_identifier.py} &
+Trains and cross-validates the strain-only classifier and fixes its operating
+point. \\[0.3em]
+
+\code{05\_search\_o4a.py} &
+The livetime-limited blind search. Run once with \code{--epoch O4a} and once
+with \code{--epoch O3b} for the like-for-like comparison. \\[0.3em]
+
+\code{06\_population\_comparison.py} &
+Rates, slow/fast decomposition, feature comparison; writes
+\code{paper/numbers.tex}. \\[0.3em]
+
+\code{07\_make\_figures.py} &
+Renders every figure in this document to \code{results/figures}. \\
+\end{longtable}
+
+\subsection{Determinism}
+
+Every random choice --- the stratified catalogue sub-sampling, the search
+window placement, the cross-validation folds, the bootstrap resamples ---
+draws from a seed set in \code{config/analysis.yaml} and recorded in each
+provenance sidecar. Re-running a stage with the same configuration reproduces
+its output exactly. Changing the seed changes the sample, and the size of that
+change is one of the systematics of \cref{sec:results:systematics}.
+
+\subsection{Cost}
+
+Approximate wall-clock times on a laptop with a domestic connection:
+
+\begin{center}
+\small
+\begin{tabular}{lll}
+\toprule
+Stage & Bottleneck & Approximate time \\
+\midrule
+01 catalogue download, 560 MB & network & \SIrange{5}{15}{\minute} \\
+02 Q-scans, 400 blocks, $\sim$5600 events & network & \SIrange{15}{40}{\hour} \\
+03 auxiliary correlation & network & \SIrange{2}{6}{\hour} \\
+04 classifier training & CPU & \SIrange{2}{5}{\minute} \\
+05 O4a search, 400 windows & network and CPU & \SIrange{4}{10}{\hour} \\
+06 comparison & CPU & \SIrange{1}{3}{\minute} \\
+07 figures & mixed & \SIrange{5}{20}{\minute} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+These are measured, not estimated. The dominant cost is stage~02, and it is
+set by the number of GWOSC \emph{file} downloads rather than by the number of
+events: open strain is served in \SI{4096}{\second} HDF5 files, and a request
+for any sub-interval fetches the whole file, timed at two to four minutes each
+on a domestic connection. The block cache described in
+\cref{sec:methods:sampling} turns that from one download per event into one
+per block; the measured yield over a real run is about ten events per
+download, against a naive 1.4.
+
+Every remote fetch is cached on disk keyed by a hash of the request, so a
+re-run after an interruption costs only the work not yet done -- which matters,
+because a job of this length will be interrupted. The cache is
+the dominant disk consumer, at roughly \SI{1}{\mega\byte} per
+\SI{64}{\second} strain window.
+
+\subsection{Tests}
+
+\begin{lstlisting}[language=bash]
+pytest
+\end{lstlisting}
+
+$114$ tests, no network access required, about three minutes. They cover the
+feature contract, the recovery tolerances of \cref{tab:validation}, the
+pure-noise null test, the witness-calibration round trip, a negative control
+on the predictor, the GPS conversions against the published epoch boundaries,
+the segment arithmetic, the statistical estimators, and the two
+data-availability facts of \cref{sec:data} --- so that a future GWOSC release
+adding an O4a motion witness would announce itself as a test failure.
+
+\subsection{Building this document}
+
+The \code{paper} directory compiles standalone on Overleaf with pdf\LaTeX{}
+and Bib\TeX{}. \code{\textbackslash graphicspath} declares both
+\code{../results/figures} and \code{./figures}, so the source works whether it
+sits inside the analysis repository or has been uploaded on its own; in the
+latter case, copy \code{results/figures/*.pdf} into \code{paper/figures}.
+
+Numbers awaiting the production run appear as \code{\textbackslash result\{\}}
+placeholders, rendered in red so that no unfilled value can be mistaken for a
+measurement. Stage~06 closes the loop in two ways. It writes
+\code{paper/numbers.tex}, which redefines the inline macros to the measured
+values and removes the status notice at the head of \cref{sec:results}; and it
+writes \code{paper/generated/*.tex}, the body rows of each results table,
+which the section files pull in through \code{\textbackslash generated} when
+they exist and fall back to placeholders when they do not. The column
+specifications, captions and prose stay under human control; only the numbers
+are machine-written, and they cannot drift from the analysis that produced
+them.
+
+The macro names are generated mechanically from the pipeline's keys, so
+\code{slow\_fraction\_o4a\_h1} becomes
+\code{\textbackslash ResultSlowFractionOFouraHOne} --- digits are spelled out
+because \TeX{} forbids them in a control sequence.
+\code{tests/test\_latex.py} asserts that every key the pipeline emits has a
+declaration in \code{main.tex} and that every macro used in a section is
+declared, so the two halves cannot silently fall out of step.

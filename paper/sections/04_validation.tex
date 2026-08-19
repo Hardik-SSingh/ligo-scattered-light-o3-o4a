@@ -1,0 +1,206 @@
+﻿\section{Validation against known signals}
+\label{sec:validation}
+
+Every number in \cref{sec:results} is produced by an algorithm that could, in
+principle, be measuring an artefact of its own construction. The only way to
+tell is to give it a signal whose parameters are known exactly and check what
+comes back. This section does that, and it is the reason two of the analysis
+choices in \cref{sec:methods} are what they are.
+
+\subsection{The injection model}
+
+The simulator generates
+%
+\begin{align}
+  x(t) &= X_0 \sin(2\pi f_m t + \varphi), \label{eq:injx}\\
+  h(t) &= \sum_{n=1}^{N} K\,r^{\,n-1}
+          \sin\!\left(n\,\frac{4\pi\,x(t)}{\lambda}\right), \label{eq:injh}
+\end{align}
+%
+where the sum runs over bounce orders with amplitude ratio $r$ between
+successive bounces. The arches are therefore not drawn on: they emerge from
+the phase modulation, as they do in the instrument. From
+\crefrange{eq:injx}{eq:injh} the expected measurements follow:
+%
+\begin{equation}
+  f_1^{\max} = \frac{4\pi f_m X_0}{\lambda}, \qquad
+  f^{\max} = N f_1^{\max}, \qquad
+  \Tarch = \frac{1}{2 f_m},
+  \label{eq:injtruth}
+\end{equation}
+%
+and the harmonic comb at the apex has spacing $f_1^{\max}$.
+
+\paragraph{A wrong model, and what it cost.} The first version of the
+simulator used a single term, $h = K \sin(4\pi x/\lambda)$, on the reasoning
+that the Jacobi--Anger expansion of a sine of a large argument produces
+harmonics automatically. It does --- but they are harmonics of the
+\emph{motion} frequency $f_m$, and they terminate at $k \approx \beta$ where
+$\beta = 4\pi X_0/\lambda$ is the modulation index. Since $\beta f_m$ is
+exactly $f_1^{\max}$, a one-bounce model produces \emph{one} arch however
+large $\beta$ is. Raising the displacement to ``get more harmonics'' only
+makes that single arch taller. The harmonic arches of a real Q-scan come from
+multiple round trips, which is what \cref{eq:injh} encodes.
+
+A second false start is worth recording because it recurs in real analyses. A
+scattering train that fills the entire analysed window is whitened away
+completely: the transform estimates its amplitude spectral density from the
+data it is given, and a signal occupying the whole stretch \emph{is} the noise
+floor as far as that estimate is concerned. The injection is therefore
+confined to a Tukey-windowed stretch occupying a modest fraction of the
+window, as a real transient is.
+
+\subsection{Recovery}
+
+Two canonical injections are used throughout: a \emph{slow} event
+($X_0 = \SI{8}{\micro\metre}$, $f_m = \SI{0.15}{\hertz}$, four bounces) and a
+\emph{fast} event ($X_0 = \SI{0.64}{\micro\metre}$, $f_m = \SI{2}{\hertz}$,
+three bounces), both at unit-variance white noise. \Cref{tab:validation} gives
+the recovery.
+
+\begin{table}[htbp]
+\centering
+\caption{Recovery of injected parameters. The witness calibration is fitted by
+the procedure of \cref{sec:methods:predictor} without being told the answer;
+the synthetic witness was generated at $10^{9}$ counts per metre, so the value
+to be recovered is $1.00\times10^{-9}\,\mathrm{m}\,\mathrm{count}^{-1}$.}
+\label{tab:validation}
+\small
+\begin{tabular}{lcccc}
+\toprule
+& \multicolumn{2}{c}{Slow injection} & \multicolumn{2}{c}{Fast injection} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+Quantity & injected & recovered & injected & recovered \\
+\midrule
+Arch period $\Tarch$ (\si{\second})   & 3.33 & 3.36 & 0.250 & 0.250 \\
+Harmonic spacing (\si{\hertz})        & 14.2 & 13.9 & 15.1  & 14.0 \\
+Arch count                            & $\sim5$ & 6 & $\sim32$ & 31 \\
+Maximum arch frequency (\si{\hertz})  & 56.7 & 65.8 & 45.4 & 62.8 \\
+Witness calibration ($10^{-9}$ m/count) & 1.00 & 1.07 & 1.00 & 1.09 \\
+Envelope explained by predictor       & --- & \SI{95}{\percent} & --- & \SI{84}{\percent} \\
+Predictor--envelope correlation $r$   & --- & 0.92 & --- & 0.83 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The arch period, which carries the physical interpretation through
+\cref{eq:fdrive}, is recovered to \SI{0.8}{\percent} for the slow injection and
+exactly for the fast one. The harmonic spacing, which measures the peak
+surface velocity, is recovered to within \SI{7}{\percent}. The witness
+calibration --- fitted blind, over an eight-decade search range --- comes back
+within \SI{9}{\percent}.
+
+The maximum arch frequency reads systematically high, by \SI{16}{\percent} for
+the slow injection and \SI{38}{\percent} for the fast one, for the reason given
+in \cref{sec:methods:features}: a $Q$ tile of bandwidth $f/Q$ extends above
+the true apex. The bias is larger for the fast injection because its arches
+are shorter-lived relative to the tile duration. This feature is therefore not
+used for any absolute statement; it is used only in the O3-versus-O4a
+comparison, where the bias applies identically on both sides.
+
+\begin{figure}[htbp]
+\centering
+\safefig[\textwidth]{validation_injections}
+\caption{Q-scans of the two canonical injections with the extracted arch
+envelope overlaid (white). Upper: slow scattering, \SI{0.15}{\hertz} drive,
+arches recurring every \SI{3.3}{\second}. Lower: fast scattering,
+\SI{2}{\hertz} drive, arches recurring every \SI{0.25}{\second}. Colour is
+normalised energy $Z$; the ridge threshold is $Z = 20$. Produced by
+\code{scripts/07\_make\_figures.py --only validation}.}
+\label{fig:validation}
+\end{figure}
+
+\subsection{The null test}
+
+A threshold that lets noise through invalidates every extent feature at once,
+so the complementary test is as important as the recovery test: on a
+pure-noise map at the configured threshold, the extractor must find
+\emph{nothing}. It does --- zero supra-threshold time bins, zero duration, and
+\code{NaN} for every frequency extent --- with the peak noise energy at
+$Z = 14.6$, comfortably below the threshold of $20$. At the initially chosen
+$Z = 5.5$ the same map produced hundreds of supra-threshold bins.
+
+\subsection{A closure test on real triggers}
+\label{sec:validation:closure}
+
+Injections check the extractor against a signal built to the same model it
+assumes, which is necessary but circular. A weaker but non-circular check is
+available on real data: the features are over-determined, so they can be asked
+whether they agree with each other.
+
+On the first \num{126} scattered-light events extracted from \Hone{} \Otza,
+the median measurements are an arch repetition period of \SI{0.21}{\second}, a
+harmonic comb spacing of \SI{15.0}{\hertz}, and a maximum arch frequency of
+\SI{41.5}{\hertz}. Those three are measured independently -- from the
+autocorrelation of the envelope, from a frequency slice through the apex, and
+from the extent of the supra-threshold region. Taken together they imply
+
+\begin{itemize}
+  \item a driving frequency $\fdrive = 1/2\Tarch = \SI{2.4}{\hertz}$, which
+        falls in the anthropogenic band;
+  \item a peak surface velocity $v = \lambda f_1^{\max} / 2 =
+        \SI{8.0}{\micro\metre\per\second}$;
+  \item a displacement amplitude $X_0 = \lambda f_1^{\max} / 4\pi \fdrive =
+        \SI{530}{\nano\metre}$;
+  \item $f^{\max}/f_1^{\max} = 2.8$ resolved harmonics.
+\end{itemize}
+
+Half a micron of optic motion at a few hertz, coupling through two or three
+bounce orders, is an unremarkable description of fast scattering --- which is
+the point. Had the extractor been measuring an artefact of its own thresholds,
+there would be no reason for these three independent numbers to combine into a
+physically sensible displacement.
+
+The arch period is measurable for \SI{56}{\percent} of events and the harmonic
+spacing for \SI{29}{\percent}; the remainder are too short or too faint for the
+autocorrelation and the comb finder respectively. That completeness is a
+property of the sample, not a failure, but it is why the classifier is built to
+treat a missing feature as informative rather than imputing it silently.
+
+\subsection{What only the real data revealed}
+\label{sec:validation:realdata}
+
+Injections test the physics; they cannot test the archive. Three defects
+survived the entire simulated-signal suite and appeared within minutes of the
+first contact with live data. They are recorded because each one is a class of
+mistake that a validation-against-injections strategy is structurally blind
+to.
+
+\paragraph{The cache never wrote anything.} Both cache writers built a
+temporary file, wrote it, and renamed it into place. But
+\code{numpy.savez\_compressed} appends \code{.npz} to any filename that does
+not already end in it, so the data landed in \code{<hash>.npz.tmp.npz} while
+the rename looked for \code{<hash>.npz.tmp}. The very first real fetch died on
+it. No injection test touched the cache, so nothing caught it; the suite now
+round-trips both writers and checks that a failed write leaves nothing behind.
+
+\paragraph{The catalogue counts triggers, and unevenly.} Described in
+\cref{sec:methods:sampling}: the class-dependence is the part that matters,
+since \num{2.44} triggers per scattered-light event against \num{1.35} per
+control event is an \SI{80}{\percent} relative over-representation of the very
+class under study. Nothing about a simulated arch train would have exposed
+this, because the simulator produces one event per event.
+
+\paragraph{A fifth of the trial sample was in a hole.} Twelve of the first
+forty events failed, all inside one \SI{4096}{\second} block that GWOSC does
+not serve --- neither as a whole file nor as a narrow window within it. The
+error handling was already correct, in that the stage logged the failures and
+carried on; what was wrong was the cost, since every event in the dead block
+spent the full retry budget twice over. Unavailable blocks are now remembered,
+and the count of events lost to data gaps is reported with each stage rather
+than being silently absent from the sample.
+
+Taken together these justify the shape of the suite: injections fix the
+physics and the estimator, and the first real run is treated as a test in its
+own right rather than as the start of production.
+
+\subsection{Test suite}
+
+The results above are encoded as assertions rather than left as a one-off
+check: $114$ tests cover the feature contract, the recovery tolerances of
+\cref{tab:validation}, the null test, the calibration round trip, a
+negative control in which a predictor wrong by three decades must not still
+appear to agree, the GPS-time conversions against the published epoch
+boundaries, the segment arithmetic, the statistical estimators, and the two
+data-availability facts of \cref{sec:data}. They require no network access and
+run in about three minutes.

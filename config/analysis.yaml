@@ -1,0 +1,252 @@
+# =====================================================================
+#  Scattered-light glitch characterisation: master analysis configuration
+#
+#  Every number in this file is either (a) a physical constant, (b) a
+#  published LIGO/GWOSC value that has been verified against the source
+#  listed in the comment, or (c) an analysis choice recorded in
+#  docs/DECISIONS.md.  Nothing here is a placeholder.
+# =====================================================================
+
+project:
+  name: "Q-scan morphology of scattered-light transients in LIGO O3 and O4a"
+  author: "Hardik Sher Singh"
+  institution: "Thapar Institute of Engineering and Technology"
+
+# ---------------------------------------------------------------------
+# Observing-run epochs.  GPS boundaries from the GWOSC data-release pages
+# (https://gwosc.org/O3/O3a/, /O3/O3b/, /O4/O4a/).
+# ---------------------------------------------------------------------
+epochs:
+  O3a:
+    gps_start: 1238166018        # 2019-04-01 15:00:00 UTC
+    gps_end:   1253977218        # 2019-10-01 15:00:00 UTC
+    run: O3
+    detectors: [H1, L1]
+  O3b:
+    gps_start: 1256655618        # 2019-11-01 15:00:00 UTC
+    gps_end:   1269363618        # 2020-03-27 17:00:00 UTC
+    run: O3
+    detectors: [H1, L1]
+  O4a:
+    gps_start: 1368975618        # 2023-05-24 15:00:00 UTC
+    gps_end:   1389456018        # 2024-01-16 16:00:00 UTC
+    run: O4
+    detectors: [H1, L1]
+
+# ---------------------------------------------------------------------
+# Gravity Spy machine-learning classification catalogue.
+# Zenodo record 5649212, DOI 10.5281/zenodo.5649212 (Glanzer et al. 2023).
+# NOTE: this release covers O1, O2, O3a and O3b ONLY.  There is no public
+# Gravity Spy catalogue for O4a -- see docs/DATA_AVAILABILITY.md.
+# ---------------------------------------------------------------------
+gravityspy:
+  zenodo_record: 5649212
+  base_url: "https://zenodo.org/records/5649212/files"
+  files:
+    H1_O3a: H1_O3a.csv
+    H1_O3b: H1_O3b.csv
+    L1_O3a: L1_O3a.csv
+    L1_O3b: L1_O3b.csv
+  target_label: Scattered_Light
+  # Selection cuts applied to build the analysis sample.
+  min_ml_confidence: 0.90       # ML posterior for the assigned class
+  min_snr: 7.5                  # Omicron threshold used by Gravity Spy
+  peak_frequency_range: [10.0, 2048.0]
+
+# ---------------------------------------------------------------------
+# Strain data access (GWOSC open data).
+# ---------------------------------------------------------------------
+strain:
+  sample_rate: 4096             # Hz; the 4 kHz release is sufficient below 512 Hz
+  channel_suffix: "GWOSC-4KHZ_R1_STRAIN"
+  # Analysis window around each trigger.  The Q-transform needs padding on
+  # both sides that is later discarded to avoid edge/filter artefacts.
+  window_half_width: 32.0       # s of data fetched either side of t0
+  qscan_half_width: 8.0         # s actually rendered/analysed either side
+  highpass: 8.0                 # Hz
+
+# ---------------------------------------------------------------------
+# Q-transform configuration.  Ranges chosen for slow AND fast scattering:
+# arches live between ~10 Hz and ~120 Hz and are narrow-band in f but long
+# in t, which favours low Q.
+# ---------------------------------------------------------------------
+qtransform:
+  # Upper Q is capped at 16 on purpose.  A tile of quality factor Q at
+  # frequency f lasts Q / (2 pi f) seconds; at Q = 45 and 45 Hz that is 0.16 s,
+  # which is comparable to the repetition period of fast scattering, so the
+  # arches are smeared into an unresolved line forest and the multi-Q search
+  # happily picks that plane because it integrates the lines coherently.
+  # Capping Q keeps the tile duration well below the arch period.  Verified in
+  # tests/test_morphology.py::test_fast_scattering_arch_period.
+  q_range: [4.0, 16.0]
+  frequency_range: [8.0, 256.0]
+  whiten: true
+  fres: 0.25                    # Hz, output frequency resolution
+  tres: 0.01                    # s, output time resolution
+  # Normalised-energy floor for ridge extraction.  Z = SNR^2 / 2, so Z = 20
+  # is a single-tile SNR of 6.3.  The floor must sit ABOVE the largest energy
+  # a noise-only map produces: a 16 s, 8-256 Hz map at Q ~ 5.7 contains of
+  # order 1e4 independent tiles, whose expected maximum is ln(1e4) ~ 9, and
+  # measured maxima on simulated Gaussian noise reach ~16 once the multi-Q
+  # search is included.  Z = 20 leaves that behind.  Verified by
+  # tests/test_morphology.py::test_pure_noise_has_no_ridge.
+  energy_threshold: 20.0
+  # Connected supra-threshold regions smaller than this many output pixels are
+  # discarded.  The output grid is interpolated from much coarser Q tiles, so
+  # a single hot tile already covers tens of pixels; this only removes specks.
+  min_island_tiles: 40
+
+# ---------------------------------------------------------------------
+# Scattering physics.
+#   A surface moving with velocity v phase-modulates the scattered field by
+#   dphi/dt = (4*pi/lambda) v(t).  The instantaneous frequency of the n-th
+#   harmonic of the resulting noise is  f_n(t) = n * (2/lambda) * |v(t)|.
+# ---------------------------------------------------------------------
+scattering:
+  laser_wavelength: 1.064e-6    # m (Nd:YAG, Advanced LIGO)
+  max_harmonic: 8
+  # Discriminator between the two populations identified by Soni et al. (2021).
+  # Arches recur twice per cycle of the driving motion, so the arch repetition
+  # period is half the driving period.
+  slow_fast_split_period: 1.5   # s; T_rep > 1.5 s -> "slow", else "fast"
+  microseism_band: [0.10, 0.30] # Hz
+  anthropogenic_band: [1.0, 6.0]  # Hz
+  earthquake_band: [0.03, 0.10] # Hz
+
+# ---------------------------------------------------------------------
+# Auxiliary channels.
+#
+#  O3: the GWOSC O3 auxiliary release exposes both a "bulk" set (86 channels
+#      at full rate) and a "second-trend" set (402 channels at 1 Hz).  The
+#      bulk set contains L1:SUS-OM3_M1_DAMP_L_IN1_DQ at 256 Hz, which is a
+#      genuine optic-motion witness suitable for a per-glitch scattering
+#      predictor.  The trend set contains the full STS ground-seismometer
+#      band-limited-RMS family, which is what drives the rate correlation.
+#
+#  O4a: the released set is 14 (H1) + 11 (L1) channels, ALL of which are
+#      calibration lines, IMC wavefront sensors, mains monitors or parametric
+#      -instability RMS monitors.  There is NO seismometer, accelerometer or
+#      suspension witness.  A per-glitch scattering predictor is therefore
+#      impossible for O4a from public data.  See docs/DATA_AVAILABILITY.md.
+# ---------------------------------------------------------------------
+auxiliary:
+  nds_host: "nds.gwosc.org"
+  nds_port: 31200
+  # The GWOSC NDS server refuses auxiliary requests longer than this.  Measured
+  # against the live server: 4 h succeeds, 8 h fails.  All channels for a chunk
+  # are requested in one call, which is worth about 3.6x (9 channels take
+  # 11.3 s batched against 40.8 s one at a time).
+  chunk_hours: 4
+  channel_list_files:
+    O3_bulk: config/channels_O3_bulk.csv
+    O3_second_trend: config/channels_O3_second_trend.csv
+    O4_bulk: config/channels_O4_bulk.csv
+
+  # Per-glitch motion witnesses (full-rate, O3 only).
+  witness:
+    L1:
+      channel: "L1:SUS-OM3_M1_DAMP_L_IN1_DQ"
+      sample_rate: 256
+      description: "OM3 top-stage length damping loop error signal"
+    H1:
+      channel: "H1:ISI-GND_STS_ITMY_Z_BLRMS_30M_100M"
+      sample_rate: 16
+      description: >
+        H1 has no full-rate suspension witness in the public O3 release.
+        The 16 Hz corner-station STS BLRMS is used as a fallback; it supports
+        rate-level correlation but NOT per-glitch frequency tracking.
+      full_rate_witness_available: false
+
+  # Ground-motion trend channels used for the rate correlation.  Suffix
+  # ".rms" denotes the second-trend frame.
+  ground_motion_trends:
+    L1:
+      - "L1:ISI-GND_STS_ITMY_Z_BLRMS_100M_300M.rms"
+      - "L1:ISI-GND_STS_ITMY_X_BLRMS_100M_300M.rms"
+      - "L1:ISI-GND_STS_ITMY_Y_BLRMS_100M_300M.rms"
+      - "L1:ISI-GND_STS_ITMY_Z_BLRMS_30M_100M.rms"
+      - "L1:ISI-GND_STS_ITMY_X_BLRMS_1_3.rms"
+      - "L1:ISI-GND_STS_ITMY_Y_BLRMS_1_3.rms"
+      - "L1:ISI-GND_STS_ITMY_X_BLRMS_3_10.rms"
+      - "L1:ISI-GND_STS_ETMX_X_BLRMS_100M_300M.rms"
+      - "L1:ISI-GND_STS_ETMY_Y_BLRMS_100M_300M.rms"
+    H1:
+      - "H1:ISI-GND_STS_ITMY_Z_BLRMS_100M_300M.rms"
+      - "H1:ISI-GND_STS_ITMY_X_BLRMS_100M_300M.rms"
+      - "H1:ISI-GND_STS_ITMY_Y_BLRMS_100M_300M.rms"
+      - "H1:ISI-GND_STS_ITMY_Z_BLRMS_30M_100M.rms"
+      - "H1:ISI-GND_STS_ITMY_X_BLRMS_1_3.rms"
+      - "H1:ISI-GND_STS_ITMY_Y_BLRMS_1_3.rms"
+      - "H1:ISI-GND_STS_ITMY_X_BLRMS_3_10.rms"
+      - "H1:ISI-GND_STS_ETMX_X_BLRMS_100M_300M.rms"
+      - "H1:ISI-GND_STS_ETMY_Y_BLRMS_100M_300M.rms"
+
+# ---------------------------------------------------------------------
+# Sampling.  Q-scanning every catalogued glitch is network-bound and
+# unnecessary; morphology statistics converge long before that.
+# ---------------------------------------------------------------------
+sampling:
+  seed: 20260804
+  # Coalescence window used to turn the Gravity Spy *trigger* list into an
+  # *event* list.  The release is Omicron triggers, not events: 12.3 per cent
+  # of rows share an exact (event_time, detector), and about half of all
+  # triggers fall within 8 s of another one -- so they land inside each other's
+  # Q-scan windows and produce identical feature vectors.  Set equal to the
+  # full analysed window (2 x qscan_half_width) so that no two retained events
+  # can share a Q-scan.  The same value clusters the O4a search output, which
+  # is what makes the two samples comparable.
+  cluster_window: 16.0
+  # Morphology sample.  The unit is the GWOSC file block, not the event:
+  # asking for a 64 s window downloads the whole 4096 s file it lives in, so
+  # the block count is what sets the wall-clock cost.  100 blocks per detector
+  # per epoch is 400 blocks, about 600 downloads once boundary-straddling
+  # windows are counted, or roughly 12 hours.  Taking up to 12 events from each
+  # gives ~2000 scattered-light events.  See docs/DECISIONS.md (D-12).
+  #
+  # Events from one block share ground-motion conditions and are therefore
+  # correlated: the BLOCK count, not the event count, carries the statistical
+  # weight.  This is stated in the write-up.
+  blocks_per_detector_epoch: 100
+  max_events_per_block: 12
+  # Control sample: non-scattering Gravity Spy classes, used to train and
+  # score the strain-only identifier that is later applied to O4a.
+  # The control sample is drawn from the SAME blocks as the signal sample, so
+  # it costs no extra downloads and, more importantly, is drawn from the same
+  # stretches of data -- the classifier then cannot separate the classes by
+  # learning what a noisy night looks like.
+  control_classes: [Blip, Koi_Fish, Low_Frequency_Burst, Tomte,
+                    Extremely_Loud, Repeating_Blips, Light_Modulation,
+                    Violin_Mode, Whistle, Power_Line, No_Glitch]
+  max_control_per_block: 12
+  # O4a blind search: livetime-limited stratified sample.
+  o4a_segment_length: 512.0     # s
+  o4a_n_segments: 400           # per detector -> ~2.4 days livetime each
+
+# ---------------------------------------------------------------------
+# Classifier used to transfer the O3 definition of "scattered light" to O4a.
+# ---------------------------------------------------------------------
+classifier:
+  model: gradient_boosting
+  n_estimators: 400
+  max_depth: 3
+  learning_rate: 0.05
+  n_splits: 5                   # stratified K-fold
+  # Operating point is chosen on the O3 validation folds at a fixed false
+  # positive rate against the control sample.
+  target_fpr: 0.01
+
+# ---------------------------------------------------------------------
+# Statistics.
+# ---------------------------------------------------------------------
+statistics:
+  bootstrap_resamples: 5000
+  block_length_hours: 6         # block bootstrap for autocorrelated rates
+  alpha: 0.05
+
+paths:
+  catalog_dir: data/catalog
+  cache_dir: data/cache
+  derived_dir: data/derived
+  results_dir: results
+  figure_dir: results/figures
+  table_dir: results/tables

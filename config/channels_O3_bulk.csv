@@ -1,0 +1,87 @@
+Channel,Sample Rate (Hz),How data was used in LVK analyses,Channel description
+H1:ASC-CHARD_P_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+H1:ASC-CHARD_Y_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+H1:ASC-CSOFT_P_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+H1:ASC-CSOFT_Y_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+H1:ASC-DHARD_P_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+H1:ASC-DHARD_Y_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+H1:ASC-DSOFT_P_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+H1:ASC-DSOFT_Y_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+H1:ASC-INP1_P_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+H1:ASC-INP1_Y_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+H1:ASC-MICH_P_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+H1:ASC-MICH_Y_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+H1:ASC-PRC1_P_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+H1:ASC-PRC1_Y_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+H1:ASC-PRC2_P_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+H1:ASC-PRC2_Y_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+H1:ASC-SRC1_P_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+H1:ASC-SRC1_Y_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+H1:ASC-SRC2_P_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+H1:ASC-SRC2_Y_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+H1:CAL-PCALY_RX_PD_OUT_DQ,16384,Subtraction of noise from line-like sources,This channel contains all injections made using the Y-end photon calibrator for calibration measurements and is used to subtract lines injected by the photon calibrator.
+H1:DMT-DQ_VECTOR_GATED,16,Data quality flags,This channel records when short periods of time should be removed or 'gated' from an analysis. The channel returns a value of 1 when a gate is active.
+H1:ISI-GND_BRS_ETMY_RX_BLRMS_30M_100M,16,Data quality flags,This channel records ground motion at the Y-end between 30 - 100 mHz in the 'roll X' direction. This frequency range is known as the earthquake band.
+H1:ISI-GND_STS_ITMY_Z_BLRMS_30M_100M,16,Data quality flags,This channel records ground motion in the corner station (near the input test mass Y) between 30 - 100 mHz in the vertical direction. This frequency range is known as the earthquake band. 
+H1:LSC-POP_A_LF_OUT_DQ,2048,Data quality flags,Length sensing and control channel sensitive to the length degrees of freedom of the power recycling cavity
+H1:LSC-REFL_A_LF_OUT_DQ,2048,Data quality flags,Length sensing and control channel sensitive to the length degrees of freedom of the common mode of the interferometer arms
+H1:LSC-REFL_A_RF9_Q_ERR_DQ,2048,Data quality flags,Length sensing and control channel (demodulated at 9 MHz) sensitive to the length degrees of freedom of the common mode of the interferometer arms
+H1:OMC-PZT1_MON_AC_OUT_DQ,16384,Data quality flags,Monitor of a piezoelectric driver that is used to dither one of the mirrors in the output mode cleaner
+H1:PEM-CS_MAINSMON_EBAY_1_DQ,1024,Subtraction of noise around the 60 Hz line,This channel measured the 60 Hz line in the main power supply of the LIGO central building
+H1:PEM-CS_MAINSMON_EBAY_2_DQ,1024,Subtraction of noise around the 60 Hz line,This channel measured the 60 Hz line in the main power supply of the LIGO central building
+H1:PEM-CS_MAINSMON_EBAY_3_DQ,1024,Subtraction of noise around the 60 Hz line,This channel measured the 60 Hz line in the main power supply of the LIGO central building
+H1:PEM-EX_ADC_0_18_OUT_DQ,2048,Data quality flags,Monitor of the voltage supply to the electrostatic drive at the X-end
+H1:PEM-EY_MAINSMON_EBAY_1_DQ,1024,Subtraction of noise from line-like sources,This channel is written out from a voltage monitor at the Y-end station and is used to subtract 60-Hz power mains lines.
+H1:PEM-VAULT_MAG_1030X195Y_COIL_X_DQ,4096,Magnetic noise budget for Stochastic search,This channel records data from a LEMI magnetometer located in the the ‘vault’ (a building that houses PEM sensors away from all buildings to measure noise due to the external environment) measuring magnetic noise in the X-direction
+H1:PEM-VAULT_MAG_1030X195Y_COIL_Y_DQ,4096,Magnetic noise budget for Stochastic search,This channel records data from a LEMI magnetometer located in the the ‘vault’ (a building that houses PEM sensors away from all buildings to measure noise due to the external environment) measuring magnetic noise in the Y-direction
+H1:PSL-FSS_FAST_MON_OUT_DQ,16384,Data quality flags,This channel records the frequency of the pre stabilised laser via the frequency stabilisation servo.
+H1:SUS-ETMX_L1_CAL_LINE_OUT_DQ,512,Subtraction of noise from line-like sources,This channel contains injections made using the X-end upper-intermediate mass (L1) stage actuator for calibration measurements and is used to subtract lines injected by that actuator.
+H1:SUS-ETMX_L2_CAL_LINE_OUT_DQ,512,Subtraction of noise from line-like sources,This channel contains injections made using the X-end penultimate mass (L2) stage actuator for calibration measurements and is used to subtract lines injected by that actuator.
+H1:SUS-ETMX_L2_DAMP_MODE14_OUT16,16,Data quality flags,Output signal of a violin mode damping control loop
+H1:SUS-ETMX_L3_CAL_LINE_OUT_DQ,512,Subtraction of noise from line-like sources,This channel contains injections made using the X-end test mass (L3) stage actuator for calibration measurements and is used to subtract lines injected by that actuator.
+L1:ASC-CHARD_P_A_OUT_DQ,256,Data quality flags,Angular sensing and control channel sensitive to the common hard mode of the interferometer arms
+L1:ASC-CHARD_P_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+L1:ASC-CHARD_Y_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+L1:ASC-CSOFT_P_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+L1:ASC-CSOFT_Y_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+L1:ASC-DHARD_P_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+L1:ASC-DHARD_Y_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+L1:ASC-DSOFT_P_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+L1:ASC-DSOFT_Y_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+L1:ASC-INP1_P_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+L1:ASC-INP1_Y_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+L1:ASC-MICH_P_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+L1:ASC-MICH_Y_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+L1:ASC-PRC1_P_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+L1:ASC-PRC1_Y_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+L1:ASC-PRC2_P_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+L1:ASC-PRC2_Y_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+L1:ASC-SRC1_P_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+L1:ASC-SRC1_Y_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+L1:ASC-SRC2_P_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+L1:ASC-SRC2_Y_INMON,16,Subtraction of noise around the 60 Hz line,This channel witnesses the low frequency modulation of the 60Hz line coupling
+L1:ASC-X_TR_A_NSUM_OUT_DQ,2048,Data quality flags,Monitor of light transmitted through the test mass at the X-end; sum of four quadrant photodiode segments
+L1:CAL-PCALY_RX_PD_OUT_DQ,16384,Subtraction of noise from line-like sources,This channel contains all injections made using the Y-end photon calibrator for calibration measurements and is used to subtract lines injected by the photon calibrator.
+L1:DMT-DQ_VECTOR_GATED,16,Data quality flags,Channel recording time periods where the strain channel exceeded a band-limited RMS threshold
+L1:ISI-GND_STS_ITMY_Z_BLRMS_30M_100M,16,Data quality flags,This channel records data from a STS-2 seismometer located in the corner station near the inner test mass of the Y-arm used to measure motion in the Z direction due to seismic motion; filtered using band-limited RMS from 0.03 Hz - 0.10 Hz 
+L1:LSC-POP_A_LF_OUT_DQ,16384,Data quality flags,Length sensing and control channel sensitive to the length degrees of freedom of the power recycling cavity
+L1:LSC-POP_A_RF9_I_ERR_DQ,2048,Glitch subtraction,Length sensing and control channel measuring the light (demodulated at 9 MHz) transmitted through the power recycling cavity 
+L1:LSC-PRCL_IN1_DQ,16384,Data quality flags,Length sensing and control channel; error signal from the power recycling control loop
+L1:LSC-PRCL_OUT_DQ,16384,Data quality flags,Length sensing and control channel; control signal from the power recycling control loop
+L1:PEM-CS_MAINSMON_EBAY_1_DQ,1024,Subtraction of noise around the 60 Hz line,This channel measured the 60 Hz line in the main power supply of the LIGO central building
+L1:PEM-CS_MAINSMON_EBAY_2_DQ,1024,Subtraction of noise around the 60 Hz line,This channel measured the 60 Hz line in the main power supply of the LIGO central building
+L1:PEM-CS_MAINSMON_EBAY_3_DQ,1024,Subtraction of noise around the 60 Hz line,This channel measured the 60 Hz line in the main power supply of the LIGO central building
+L1:PEM-CS_MIC_LVEA_INPUTOPTICS_DQ,16384,Data quality flags,Microphone located in the corner station’s large vacuum equipment area near the input optics
+L1:PEM-EY_ACC_BEAMTUBE_MAN_Y_DQ,4096,Data quality flags,Accelerometer location on the beamtube near the Y-end measuring motion in the Y-direction
+L1:PEM-EY_MAINSMON_EBAY_1_DQ,1024,Subtraction of noise from line-like sources,This channel is written out from a voltage monitor at the Y-end station and is used to subtract 60-Hz power mains lines.
+L1:PEM-EY_MIC_VEA_PLUSY_DQ,16384,Data quality flags,Microphone located at the Y-end in the vacuum equipment area
+L1:PEM-EY_VAULT_MAG_LEMI_X_DQ,4096,Magnetic noise budget for Stochastic search,This channel records data from a LEMI magnetometer located in the the ‘vault’ (a building that houses PEM sensors away from all buildings to measure noise due to the external environment) measuring magnetic noise in the X-direction
+L1:PEM-EY_VAULT_MAG_LEMI_Y_DQ,4096,Magnetic noise budget for Stochastic search,This channel records data from a LEMI magnetometer located in the the ‘vault’ (a building that houses PEM sensors away from all buildings to measure noise due to the external environment) measuring magnetic noise in the Y-direction
+L1:SQZ-ASC_ANG_P_OUT_DQ,256,Data quality flags,Angular sensing and control channel for the squeezer subsystem; monitoring the output signal of the angular pitch control loop
+L1:SQZ-ASC_ANG_Y_OUT_DQ,256,Data quality flags,Angular sensing and control channel for the squeezer subsystem; monitoring the output signal of the angular yaw control loop
+L1:SQZ-ASC_POS_P_OUT_DQ,256,Data quality flags,Angular sensing and control channel for the squeezer subsystem; monitoring the output signal of the waist position pitch control loop
+L1:SQZ-ASC_POS_Y_OUT_DQ,256,Data quality flags,Angular sensing and control channel for the squeezer subsystem; monitoring the output signal of the waist position yaw control loop
+L1:SUS-ETMX_L1_CAL_LINE_OUT_DQ,512,Subtraction of noise from line-like sources,This channel contains injections made using the X-end upper-intermediate mass (L1) stage actuator for calibration measurements and is used to subtract lines injected by that actuator.
+L1:SUS-ETMX_L2_CAL_LINE_OUT_DQ,512,Subtraction of noise from line-like sources,This channel contains injections made using the X-end penultimate mass (L2) stage actuator for calibration measurements and is used to subtract lines injected by that actuator.
+L1:SUS-ETMX_L3_CAL_LINE_OUT_DQ,512,Subtraction of noise from line-like sources,This channel contains injections made using the X-end test mass (L3) stage actuator for calibration measurements and is used to subtract lines injected by that actuator.
+L1:SUS-OM3_M1_DAMP_L_IN1_DQ,256,Data quality flags,Error signal of the OM3 top stage length damping loop

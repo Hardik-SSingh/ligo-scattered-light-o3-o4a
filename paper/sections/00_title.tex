@@ -1,0 +1,65 @@
+\begin{titlepage}
+\centering
+\vspace*{2.0cm}
+
+{\Large\bfseries
+Q-scan morphology of scattered-light transients\\[0.35em]
+in LIGO O3 and O4a\par}
+
+\vspace{0.9em}
+{\large\itshape with an auxiliary-channel correlation analysis\par}
+
+\vspace{2.4cm}
+{\large Hardik Sher Singh\par}
+\vspace{0.4em}
+{\normalsize Department of Electronics and Communication Engineering\\
+Thapar Institute of Engineering and Technology, Patiala, India\par}
+\vspace{0.3em}
+{\small\texttt{hsingh\_be23@thapar.edu}\par}
+
+\vspace{2.8cm}
+\begin{minipage}{0.85\textwidth}
+\small
+\noindent\textbf{Abstract.}
+Scattered light is among the most persistent sources of transient noise in the
+Advanced LIGO detectors. Stray light reflecting from a moving surface and
+rejoining the main beam is phase modulated by $4\pi x/\lambda$, and when that
+excursion exceeds a radian the noise appears in the time--frequency plane as a
+train of harmonic \emph{arches} whose instantaneous frequency follows
+$f_n = 2n|v|/\lambda$. Because the frequency depends on the magnitude of the
+velocity, each cycle of the driving motion produces two arches, so the arch
+repetition period is a direct measurement of the mechanical disturbance
+responsible.
+
+This work characterises the morphology of scattered-light transients in the
+third and fourth LIGO observing runs using only public data. A labelled O3
+sample is drawn from the Gravity Spy classification release; every trigger is
+Q-transformed and reduced to a twenty-element feature vector describing the
+arch train. The O3 sample is then tied to physical cause in two ways: by
+rank-correlating the hourly trigger rate against seismometer band-limited RMS
+in the earthquake, microseismic and anthropogenic bands, and by fitting the
+$f_n = 2n|v|/\lambda$ predictor, trigger by trigger, to the Livingston OM3
+suspension witness that the public O3 auxiliary release makes available at
+\SI{256}{\hertz}.
+
+Two properties of the public data determine the shape of the O4a half of the
+analysis and are reported as findings in their own right: no Gravity Spy
+classification catalogue has been released for O4a, and the O4a auxiliary
+release contains no seismometer, accelerometer or suspension witness of any
+kind. The O4a sample is therefore constructed from strain alone, using an
+excess-power trigger finder and a classifier trained on the O3 features, and
+the O3 comparison is made like-for-like by running the identical search on
+both runs. The auxiliary analysis, being an O3 result, is what licenses
+reading the O4a arch-period distribution as a statement about ground motion.
+
+\vspace{0.6em}
+\noindent\textbf{Keywords:} gravitational waves; LIGO; detector
+characterisation; transient noise; scattered light; time--frequency analysis.
+\end{minipage}
+
+\vfill
+{\small Analysis code and configuration:
+\url{https://github.com/hardiksingh/LIGO_Glitch_Classification}\par}
+\vspace{0.4em}
+{\small \today\par}
+\end{titlepage}

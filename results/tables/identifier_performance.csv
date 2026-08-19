@@ -1,0 +1,9 @@
+metric,value
+cv_auc,0.927533433886375
+cv_auc_std,0.07697510847186412
+cv_efficiency,0.512
+cv_efficiency_std,0.42369800565969157
+threshold,0.9877216113092423
+target_fpr,0.01
+n_signal,126.0
+n_background,86.0

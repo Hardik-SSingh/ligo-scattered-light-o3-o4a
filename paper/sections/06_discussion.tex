@@ -1,0 +1,112 @@
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{What the arch period buys}
+
+The single most useful property of scattered light for an analysis restricted
+to public data is that \cref{eq:fdrive} makes the driving frequency a
+\emph{strain-only} measurement. No auxiliary channel is required to say that a
+particular trigger was caused by motion at \SI{0.15}{\hertz} rather than at
+\SI{2}{\hertz}; the arch period says so directly.
+
+That is what allows the O4a half of this study to exist at all. The O4a
+auxiliary release contains nothing that witnesses motion
+(\cref{sec:data:aux:o4a}), so an approach that depended on auxiliary data
+would simply stop at the end of O3. Reading the mechanism off the morphology
+does not.
+
+The inference is only as good as the relation it rests on, which is why
+\cref{sec:results:aux} matters beyond its own numbers. Establishing in O3 ---
+where both the labels and the witnesses exist --- that the arch period does
+track ground motion, and that the predictor $f_n = 2n|v|/\lambda$ quantitatively
+explains individual arch trains, is what licenses reading an O4a arch period
+as a statement about the instrument's environment. Without the O3 auxiliary
+work, the O4a arch-period distribution would be a description of pictures
+rather than a measurement of physics.
+
+\subsection{Relation to previous work}
+
+\citet{Soni2021Scattering} established the two-population picture in O3 using
+internal data, and identified relative motion between the main and reaction
+chains as the dominant slow-scattering path. \citet{Nandi2026} report on
+scattered light at Livingston during O4, again finding two populations: one
+traced to microseismic ground motion and mitigated by installing baffles, the
+other to vertical ground motion coupling through a vacuum chamber and
+addressed by adding seismic isolation.
+
+This work is not a substitute for either. It has access to a fraction of the
+channels, none of the engineering record, and no ability to intervene in the
+instrument. What it adds is a different kind of statement: a reproducible,
+externally checkable measurement of how the scattered-light population changed
+between the two runs, derived entirely from data anyone can download, with
+every intermediate step validated against signals of known parameters. Where
+its conclusions agree with the internal analyses, that agreement is
+independent evidence; where they disagree, the disagreement is informative
+about what public data can and cannot support.
+
+The comparison with \citet{Nandi2026} is the most direct test available. If
+the arch-period distribution measured here from O4a strain alone reproduces
+the two-population structure they identify from internal channels, the
+strain-only method is validated on real data as well as on injections.
+
+\subsection{Limitations}
+
+\paragraph{The O4a class definition is inherited from O3.} Every O4a number
+rests on a classifier trained on O3 labels, so it presumes that the
+morphological boundary of ``scattered light'' did not move between runs. That
+presumption is not testable without O4a labels. The cross-validated efficiency
+and false-positive rate on held-out O3 folds
+(\cref{sec:results:o4a}) are the quantitative statement of how well the
+transfer is expected to hold \emph{within} O3; they are an upper bound on how
+well it holds across runs, not an estimate of it. A genuinely novel O4a glitch
+morphology resembling scattered light would be absorbed into the sample
+without comment.
+
+\paragraph{The trigger generator is not Omicron.} The excess-power finder of
+\cref{sec:methods:search} is a stand-in. Its efficiency curve differs from
+Omicron's, in ways not characterised here. This is why the comparison is run
+like-for-like, with the same finder on both runs: the absolute rates are
+specific to this pipeline, and only the ratio between runs is meant to be
+compared with anything external.
+
+\paragraph{Coverage.} The O4a search covers a few per cent of the run. The
+sample is representative in the statistical sense --- windows are drawn
+uniformly in livetime and stratified across the run --- but it cannot resolve
+episodic behaviour, and a fortnight of anomalous scattering would appear only
+as a handful of windows.
+
+\paragraph{One free parameter in the predictor.} The counts-to-metres
+calibration is fitted, not derived, because GWOSC publishes auxiliary channels
+uncalibrated. The fit is honest --- trained and validated on disjoint sets,
+with the constraint width reported --- but a genuinely calibrated witness
+would turn the agreement statistic from a goodness-of-fit into a real test of
+\cref{eq:fn}.
+
+\paragraph{Cross-validation is not grouped in time.} Triggers minutes apart
+are not independent, so the quoted AUC is mildly optimistic. Time-grouped
+folds would be the correct treatment and are the obvious next refinement.
+
+\paragraph{\Hone{} has no public motion witness.} The per-trigger predictor is
+a Livingston-only result. Whether the same calibration and the same explained
+fraction would be found at Hanford is untested, and untestable from public
+data.
+
+\subsection{What would strengthen this}
+
+In rough order of value per unit effort:
+
+\begin{enumerate}
+  \item \textbf{An O4a trigger catalogue.} Even an unlabelled Omicron trigger
+        list would remove the largest systematic here, by decoupling the
+        trigger generator from this pipeline.
+  \item \textbf{Time-grouped cross-validation}, replacing the stratified folds
+        with folds split on contiguous blocks of the run.
+  \item \textbf{Full O4a coverage}, which is a matter of compute rather than
+        method; the pipeline is resumable and would scale to it unchanged.
+  \item \textbf{Direct comparison against \citet{Nandi2026}} on overlapping
+        times, which would test the strain-only classification against an
+        independent, internally-derived identification.
+  \item \textbf{An O4a auxiliary release containing a motion witness}, which
+        would make the O4a half of the study symmetric with the O3 half. The
+        test suite is written to detect this if it happens.
+\end{enumerate}

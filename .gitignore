@@ -1,0 +1,60 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.ipynb_checkpoints/
+.venv/
+
+# ---- Data (never commit bulk data) ----
+data/cache/**
+!data/cache/.gitkeep
+data/catalog/*.csv
+data/catalog/*.csv.gz
+data/catalog/*.h5
+!data/catalog/.gitkeep
+# Derived products are regenerable from the catalogue and the cache, and the
+# feature tables run to tens of megabytes.  The JSON provenance sidecars are
+# kept: they are small and they record exactly which configuration, seed and
+# software versions produced each run.
+data/derived/*.h5
+data/derived/*.npz
+data/derived/*.parquet
+data/derived/*.csv.gz
+data/derived/*.joblib
+!data/derived/*.provenance.json
+!data/derived/.gitkeep
+
+# ---- Results ----
+# Figures and logs are regenerable from the tables; the tables and the
+# provenance sidecars are the things worth versioning.
+results/figures/*.png
+results/figures/*.pdf
+results/logs/
+results/**/*.h5
+!results/**/.gitkeep
+
+# ---- LaTeX build products ----
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.log
+paper/*.out
+paper/*.toc
+paper/*.lof
+paper/*.lot
+paper/*.fdb_latexmk
+paper/*.fls
+paper/*.synctex.gz
+paper/*.pdf
+!paper/main.pdf
+
+# ---- OS / editor ----
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
