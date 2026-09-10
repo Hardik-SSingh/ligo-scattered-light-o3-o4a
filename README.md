@@ -253,7 +253,9 @@ src/gwglitch/
 scripts/         the eight pipeline stages
 tests/           114 tests, no network access required
 paper/           LaTeX write-up, Overleaf-ready
-docs/            data availability and the decision log
+docs/            data availability, the decision log, study notes
+                 (STUDY_NOTES.md: self-contained explanation of the
+                 physics, method and every decision, with references)
 ```
 
 ---
