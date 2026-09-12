@@ -97,8 +97,14 @@ anthropogenic bands at both sites.
 The pipeline is validated end to end against simulated injections and has been
 exercised against the live archive at every stage. The production run over the
 full O3 and O4a samples has **not** been done — that is the remaining work, and
-it is a matter of wall-clock time rather than method. Until it is, the paper's
-results section shows red placeholders rather than numbers.
+it is a matter of wall-clock time rather than method.
+
+Until it is, the PDF marks itself: a banner on the title page, a status notice
+at the head of the results section, "DRAFT" in the footer of every page, and a
+warning in the PDF metadata. All four are tied to the same condition — the
+presence of `paper/numbers.tex` — and vanish together the moment stage 06
+writes the measured values. Results appear as red placeholders, never as bare
+numbers.
 
 A three-day trial of the auxiliary correlation (L1, O3b, 47 usable hours) does
 already reproduce the expected physics, which is the main evidence that the
@@ -251,7 +257,7 @@ src/gwglitch/
   latex.py       emits numbers.tex and the generated table bodies
   tables.py      intermediate table I/O
 scripts/         the eight pipeline stages
-tests/           114 tests, no network access required
+tests/           117 tests, no network access required
 paper/           LaTeX write-up, Overleaf-ready
 docs/            data availability, the decision log, study notes
                  (STUDY_NOTES.md: self-contained explanation of the

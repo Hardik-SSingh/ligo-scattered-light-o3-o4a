@@ -339,3 +339,58 @@ def test_no_control_characters_in_the_python_sources(cfg):
             if bad:
                 offenders[str(path.relative_to(cfg.root))] = bad
     assert not offenders, f"control characters in Python sources: {offenders}"
+
+
+# ---------------------------------------------------------------------------
+# Draft flagging
+# ---------------------------------------------------------------------------
+#
+# The results section carries a status notice, but it sits twenty pages in. A
+# reader who opens the PDF and skims the title page would see nothing --- which
+# is how a draft ends up circulated as though it were finished. Four markers
+# (title banner, every-page footer, PDF title, PDF subject) hang off the same
+# condition as the status notice, so they cannot drift apart from it.
+
+
+def test_draft_condition_is_defined_once_and_used_everywhere(cfg):
+    paper = cfg.root / "paper"
+    main = (paper / "main.tex").read_text(encoding="utf-8")
+    title = (paper / "sections" / "00_title.tex").read_text(encoding="utf-8")
+    results = (paper / "sections" / "05_results.tex").read_text(encoding="utf-8")
+
+    # One switch, set from the presence of the pipeline's output.
+    assert r"\newif\ifresultspending" in main
+    assert r"\IfFileExists{numbers.tex}{\resultspendingfalse}{\resultspendingtrue}" in main
+
+    # The title page banner and the results status notice must both hang off
+    # the presence of numbers.tex, not off independent hand-set flags.
+    assert r"\ifresultspending" in title, "title page has no draft banner"
+    assert r"\IfFileExists{numbers.tex}" in results, (
+        "results status notice is not conditional on the pipeline output"
+    )
+
+
+def test_draft_markers_cover_the_obvious_reading_paths(cfg):
+    """Title page, every page, and the file-properties dialog."""
+    main = (cfg.root / "paper" / "main.tex").read_text(encoding="utf-8")
+    title = (cfg.root / "paper" / "sections" / "00_title.tex").read_text(
+        encoding="utf-8"
+    )
+
+    assert "DRAFT" in title, "nothing on the title page"
+    assert r"\fancyfoot" in main and "DRAFT" in main, "no per-page footer"
+    assert "pdftitle" in main and "DRAFT" in main, "PDF metadata not marked"
+    assert "NOT FOR CIRCULATION" in title
+
+
+def test_draft_banner_states_the_trial_caveat(cfg):
+    """The 47-hour auxiliary numbers appear outside the results section.
+
+    They are quoted in the validation section and the README, so the banner has
+    to say they are a trial --- otherwise removing the results placeholders
+    would still leave an unqualified correlation coefficient in circulation.
+    """
+    title = (cfg.root / "paper" / "sections" / "00_title.tex").read_text(
+        encoding="utf-8"
+    )
+    assert "47" in title and "trial" in title.lower()

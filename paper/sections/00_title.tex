@@ -1,6 +1,29 @@
 \begin{titlepage}
 \centering
+
+\ifresultspending
+\vspace*{0.4cm}
+\fcolorbox{red!65!black}{red!7}{%
+\begin{minipage}{0.93\textwidth}
+\centering\small
+\textbf{\textcolor{red!70!black}{\large DRAFT --- NOT FOR CIRCULATION AS A RESULT}}
+
+\vspace{0.5em}
+The analysis pipeline described here is complete and validated, but the
+production run over the full O3 and O4a samples \textbf{has not been
+executed}. Every quantity in \cref{sec:results} is a placeholder, shown in
+red, not a measurement. The auxiliary-channel correlation figures quoted
+anywhere in this document come from a \SI{47}{\hour} validation trial on one
+detector, not from the full run.
+
+\vspace{0.4em}
+Nothing in the results section should be cited, quoted or relied upon. This
+banner is removed automatically when the pipeline writes the measured values.
+\end{minipage}}
+\vspace{1.0cm}
+\else
 \vspace*{2.0cm}
+\fi
 
 {\Large\bfseries
 Q-scan morphology of scattered-light transients\\[0.35em]

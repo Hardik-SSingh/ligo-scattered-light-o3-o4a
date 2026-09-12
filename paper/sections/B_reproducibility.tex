@@ -152,7 +152,7 @@ the dominant disk consumer, at roughly \SI{1}{\mega\byte} per
 pytest
 \end{lstlisting}
 
-$114$ tests, no network access required, about three minutes. They cover the
+$117$ tests, no network access required, about three minutes. They cover the
 feature contract, the recovery tolerances of \cref{tab:validation}, the
 pure-noise null test, the witness-calibration round trip, a negative control
 on the predictor, the GPS conversions against the published epoch boundaries,
@@ -170,7 +170,16 @@ latter case, copy \code{results/figures/*.pdf} into \code{paper/figures}.
 
 Numbers awaiting the production run appear as \code{\textbackslash result\{\}}
 placeholders, rendered in red so that no unfilled value can be mistaken for a
-measurement. Stage~06 closes the loop in two ways. It writes
+measurement. The document also marks itself as a draft in four places at
+once --- a banner on the title page, the status notice at the head of
+\cref{sec:results}, the footer of every page, and the PDF metadata ---
+because a notice twenty pages in does nothing for a reader who opens the
+file, skims the abstract and forms an impression. All four hang off the
+single switch \code{\textbackslash ifresultspending}, set from the
+presence of \code{numbers.tex}, so they cannot be removed separately or
+forgotten.
+
+Stage~06 closes the loop in two ways. It writes
 \code{paper/numbers.tex}, which redefines the inline macros to the measured
 values and removes the status notice at the head of \cref{sec:results}; and it
 writes \code{paper/generated/*.tex}, the body rows of each results table,
