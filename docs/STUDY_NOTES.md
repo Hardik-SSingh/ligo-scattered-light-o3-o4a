@@ -5,7 +5,7 @@ Written to be read start to finish once, then used as a reference. Every
 citation key in square brackets matches an entry in `paper/references.bib`,
 so anything you say from here can be backed by the paper.*
 
-Repository: `LIGO_Glitch_Classification`, commit `88d0b83` and later.
+Repository: [`Hardik-SSingh/ligo-scattered-light-o3-o4a`](https://github.com/Hardik-SSingh/ligo-scattered-light-o3-o4a).
 State as of these notes: pipeline built, validated on injections, exercised on
 real data at every stage but one; production run not yet executed.
 

@@ -9,7 +9,8 @@ pasting anything.
 ## Option A — Projects section (recommended, ~4 lines)
 
 **Scattered-Light Transient Characterisation in LIGO O3 and O4a** — *independent
-project* · Python, GWpy, scikit-learn · [github.com/…]
+project* · Python, GWpy, scikit-learn ·
+[github.com/Hardik-SSingh/ligo-scattered-light-o3-o4a](https://github.com/Hardik-SSingh/ligo-scattered-light-o3-o4a)
 
 - Built an end-to-end detector-characterisation pipeline that measures the
   time–frequency morphology of scattered-light glitches from Q-transform maps
